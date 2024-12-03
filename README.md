@@ -4,6 +4,8 @@
 
 * 2024 running: December 10<sup>th</sup> &ndash; 12<sup>th</sup>
 
+* Class times: 0930-1600
+
 * ECTS credits: 1.5 ECTS
 
 * Language: English
