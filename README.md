@@ -20,7 +20,6 @@ To register for the course, please contact Julie Jensen on jsj@anivet.au.dk.
 
 <!-- ### Slides
 
-* [Monday](https://gavinsimpson.github.io/au-multivariate-stats/slides/01-dissimilarity-clustering-diversity/slides.html)
 
 * [Tuesday](https://gavinsimpson.github.io/au-multivariate-stats/slides/02-unconstrained-ordination/slides.html)
 
@@ -28,11 +27,8 @@ To register for the course, please contact Julie Jensen on jsj@anivet.au.dk.
 
 * [Thursday](https://gavinsimpson.github.io/au-multivariate-stats/slides/04-permutation-tests/slides.html)
 
-* [Friday](https://gavinsimpson.github.io/au-multivariate-stats/slides/05-other-stuff/slides.html)
-
 ### Computing
 
-* [Monday](https://gavinsimpson.github.io/au-multivariate-stats/computing/01-cluster-analysis/cluster-analysis.html)
 
 * [Tuesday](https://gavinsimpson.github.io/au-multivariate-stats/computing/02-unconstrained-ordination/unconstrained-ordination.html)
 
@@ -79,9 +75,9 @@ The course covers the following topics:
 
 This course is suitable for Phd students (including senior thesis-based masters students) and researchers working with biological data who want to fit models that allow for nonlinear relationships (effects) of covariates on responses.  The course will be of particular interest to PhD candidates and researchers in inter alia biology, animal science, ecology, agriculture, and environmental science. Some prior knowledge of R is required, and some prior knowledge of generalized linear modelling in R would be an advantage.
 
-<!-- ## Computing requirements
+## Computing requirements
 
-Participants need to bring their own laptop with the latest version of R installed (version 4.4.0 or later), as well as the current version of RStudio. If you use another editor for your R code feel free to use it instead of Rstudio, but we cannot help you if you encounter problems with it.
+Participants need to bring their own laptop with the latest version of R installed (version 4.4.0 or later), as well as the current version of RStudio. If you use another editor for your R code feel free to use it instead of RStudio, but we cannot help you if you encounter problems with it.
 
 You can download R from [cloud.r-project.org](https://cloud.r-project.org/) and select from the three links at the top of the page as required for your operating system.
 
@@ -114,7 +110,7 @@ version.string R version 4.2.1 (2022-06-23)
 nickname       Funny-Looking Kid
 ```
 
-This should include `4.4.x` if you are running the latest release, but should be no lower than `4.2.0`. If the installed version of R is < 4.4.0, install a newver version of R by downloading and running one of the installers from [cloud.r-project.org](https://cloud.r-project.org/) as mentioned above.
+This should include `4.4.x` if you are running the latest release, but should be no lower than `4.2.0`. If the installed version of R is < 4.4.0, install a newer version of R by downloading and running one of the installers from [cloud.r-project.org](https://cloud.r-project.org/) as mentioned above.
 
 To check that RStudio is up-to-date, open RStudio, open the Help menu, and choose *Check for Updates*. RStudio will then check to see if there is a newer version available and if there is it will give you the option to download the newer version.
 
