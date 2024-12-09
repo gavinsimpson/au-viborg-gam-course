@@ -116,7 +116,7 @@ This should include `4.4.x` if you are running the latest release, but should be
 
 To check that RStudio is up-to-date, open RStudio, open the Help menu, and choose *Check for Updates*. RStudio will then check to see if there is a newer version available and if there is it will give you the option to download the newer version.
 
-Prior to arriving at AU Viborg on the 19th of September, make sure you have updated your installed R packages and that you have installed the following packages: tidyverse, vegan, mvabund, boral, ecoCopula, and cocorresp. To do this, open RStudio (or R) and in the console window (usually lower left, with a prompt that looks like `>`) run
+Prior to arriving at AU Viborg please to to insure you have updated your installed R packages and that you have installed the following packages: *tidyverse*, *mgcv*, *readxl*, *mgcViz*, *DHARMa*, and *gratia*. To do this, open RStudio (or R) and in the console window (usually lower left, with a prompt that looks like `>`) run
 
 ```r
 parallel::detectCores(logical = FALSE)
@@ -133,7 +133,18 @@ Change the value of `Ncpus` to the number cores you have on your computer as thi
 Now we can install the required packages
 
 ```r
-install.packages(c("tidyverse", "vegan"))
+# packages to install
+pkgs <- c("mgcv", "tidyverse", "readxl", "mgcViz", "DHARMa", "gratia")
+
+# install those packages
+install.packages(pkgs, Ncpus = 4) # set Ncpus to # of *physical* CPU cores you have
 ```
 
--->
+Finally, I'd like to use the beta version of my *gratia* package as it has some nice new quality-of-life features. To install this, please run:
+
+```r
+install.packages("gratia", repos = c(
+  "https://gavinsimpson.r-universe.dev",
+  "https://cloud.r-project.org"
+))
+```
