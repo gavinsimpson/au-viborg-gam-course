@@ -4,6 +4,8 @@
 
 * 2024 running: December 10<sup>th</sup> &ndash; 12<sup>th</sup>
 
+* Class times: 0930-1600
+
 * ECTS credits: 1.5 ECTS
 
 * Language: English
@@ -16,7 +18,7 @@ Gavin Simpson, Assistant Professor, Department of Animal and Veterinary Sciences
 
 ### Registration
 
-To register for the course, please contact Julie Jensen on jsj@anivet.au.dk.
+You can register for the course here: <https://events.au.dk/phdcoursegeneralizedadditivemodellingwithr>
 
 <!-- ### Slides
 
