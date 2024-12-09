@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Generalized Additive Models</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Gavin Simpson" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="slides.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: inverse, middle, left, my-title-slide, title-slide
+
+.title[
+# Generalized Additive Models
+]
+.subtitle[
+## a data-driven approach to estimating regression models
+]
+.author[
+### Gavin Simpson
+]
+.institute[
+### Department of Animal &amp; Veterinary Sciences · Aarhus University
+]
+.date[
+### 0930–1600 CET Wednesday 11th December, 2024
+]
+
+---
+
+class: inverse middle center big-subsection
+
+# Welcome
+
+
+
+---
+
+# Basis functions for `s(x, z)`
+
+Code for this is in `01-materials/test.R`
+
+
+
+.center[
+&lt;img src="index_files/figure-html/tprs-2d-basis-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+# Basis functions for `s(x, z)`
+
+Panels 1&amp;ndash;15 are the basis functions
+
+.center[
+&lt;img src="resources/wood-2ed-fig-5-12-2-d-tprs-basis-funs.png" width="45%" style="display: block; margin: auto;" /&gt;
+]
+
+.small[
+Source: Wood SN (2017)
+]
+
+---
+
+# Beyond linearity
+
+How do we test if we need something more than a linear effect?
+
+--
+
+Include a linear parametric term but remove it from the null space of the spline
+
+`m = c(2, 0)` implies 2&lt;sup&gt;nd&lt;/sup&gt; derivative penalty but zero null space
+
+Null space is the set of functions in the basis that the penalty doesn't affect
+
+---
+
+# Beyond linearity
+
+.row[
+
+.col-6[
+
+
+``` r
+n &lt;- 100
+set.seed(2)
+df &lt;- tibble(x = runif(n),
+             y = x + x^2 * 0.2 + rnorm(n) * 0.1)
+
+model &lt;- gam(y ~ x + s(x, m = c(2, 0)),
+             data = df, method = "REML")
+```
+]
+.col-6[
+.small[
+
+``` r
+summary(model)
+```
+
+```
+## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## y ~ x + s(x, m = c(2, 0))
+## 
+## Parametric coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.02133    0.05315  -0.401    0.689    
+## x            1.18249    0.10564  11.193   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Approximate significance of smooth terms:
+##         edf Ref.df     F p-value  
+## s(x) 0.9334      8 0.304   0.076 .
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## R-sq.(adj) =   0.91   Deviance explained = 91.1%
+## -REML = -70.567  Scale est. = 0.012767  n = 100
+```
+]
+]
+]
+
+---
+
+# Beyond linearity
+
+
+``` r
+draw(model, parametric = TRUE)
+```
+
+&lt;img src="index_files/figure-html/beyond-linearity-plot-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Derivatives of smooths
+
+Derivatives of smooths are useful for a number of statistical problems
+
+* The 1st derivative at a specified value of the covariate is the GAM equivalent of the `\(\beta\)` in a (G)LM
+
+* Can also be used to investigate *where* in the range of the covariate `\(\hat{y}_i\)` changes
+
+---
+
+# Derivatives of smooths
+
+Use the `derivatives()` function in {gratia}
+
+Provides
+
+* First derivative
+* Second derivative
+* Finite differences
+    * Forward
+    * Backward
+    * Central
+
+If you want to estimate the the *n*th derivative, need to have a `\(n+1\)` derivative penalty
+
+To estimate the second derivative you need to have `m = 3` say for TPRS
+
+And set the finite difference `eps` to a much larger value than the default
+
+---
+
+# Derivatives of smooths
+
+Simulated motorcycle collision data
+
+
+``` r
+data(mcycle, package = "MASS")
+m &lt;- gam(accel ~ s(times), data = mcycle, method = "REML")
+sm_plt &lt;- draw(m, residuals = TRUE)
+sm_plt
+```
+
+&lt;img src="index_files/figure-html/draw-mcycle-1.svg" width="70%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Derivatives of `s(times)`
+
+
+``` r
+fd &lt;- derivatives(m, type = "central", unconditional = TRUE)
+fd
+```
+
+```
+## # A tibble: 100 × 9
+##    .smooth  .by   .fs   .derivative   .se .crit .lower_ci .upper_ci times
+##    &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;
+##  1 s(times) &lt;NA&gt;  &lt;NA&gt;       -2.16   3.30  1.96     -8.62      4.30  2.40
+##  2 s(times) &lt;NA&gt;  &lt;NA&gt;       -2.12   3.28  1.96     -8.55      4.31  2.96
+##  3 s(times) &lt;NA&gt;  &lt;NA&gt;       -1.98   3.22  1.96     -8.29      4.34  3.52
+##  4 s(times) &lt;NA&gt;  &lt;NA&gt;       -1.72   3.10  1.96     -7.80      4.37  4.07
+##  5 s(times) &lt;NA&gt;  &lt;NA&gt;       -1.35   2.93  1.96     -7.09      4.39  4.63
+##  6 s(times) &lt;NA&gt;  &lt;NA&gt;       -0.877  2.69  1.96     -6.16      4.40  5.19
+##  7 s(times) &lt;NA&gt;  &lt;NA&gt;       -0.304  2.41  1.96     -5.03      4.42  5.75
+##  8 s(times) &lt;NA&gt;  &lt;NA&gt;        0.370  2.10  1.96     -3.74      4.48  6.30
+##  9 s(times) &lt;NA&gt;  &lt;NA&gt;        1.08   1.79  1.96     -2.42      4.59  6.86
+## 10 s(times) &lt;NA&gt;  &lt;NA&gt;        1.70   1.54  1.96     -1.32      4.73  7.42
+## # ℹ 90 more rows
+```
+
+---
+
+# Derivatives of `s(times)`
+
+
+``` r
+fd_plt &lt;- draw(fd) + labs(title = "First derivative s(times)")
+sm_plt + fd_plt + plot_layout(ncol = 2)
+```
+
+&lt;img src="index_files/figure-html/draw-derivatives-times-smooth-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Second derivative of `s(times)` &amp;mdash; wrong!
+
+
+``` r
+fd2 &lt;- derivatives(m, order = 2, eps = 0.1, type = "central", unconditional = TRUE)
+fd2_plt &lt;- draw(fd2)
+fd_plt + fd2_plt + plot_layout(ncol = 2)
+```
+
+&lt;img src="index_files/figure-html/draw-derivatives-times-smooth-2-1.svg" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Second derivative of `s(times)` &amp;mdash; right!
+
+
+``` r
+m2 &lt;- gam(accel ~ s(times, m = 3), data = mcycle, method = "REML")
+fd2 &lt;- derivatives(m2, order = 2, eps = 0.1, type = "central", unconditional = TRUE)
+fd2_plt &lt;- draw(fd2) + labs(title = "Second derivative s(times)")
+fd_plt + fd2_plt + plot_layout(ncol = 2)
+```
+
+&lt;img src="index_files/figure-html/draw-derivatives-times-smooth-2-right-1.svg" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Change indicators
+
+
+``` r
+fds &lt;- derivatives(m, type = "central", unconditional = TRUE,
+* interval = "simultaneous")
+m |&gt;                                               # take the model, and
+  smooth_estimates(select = "s(times)") |&gt;         # evaluate the smooth
+  add_sizer(derivatives = fds, type = "change") |&gt; # add change indicator
+  draw()                                           # plot
+```
+
+&lt;img src="index_files/figure-html/change-indicators-1.svg" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Change indicators
+
+
+``` r
+m |&gt;                                               # take the model, and
+  smooth_estimates(select = "s(times)") |&gt;         # evaluate the smooth
+  add_sizer(derivatives = fds, type = "sizer") |&gt;  # add sizer change indicator
+  draw()                                           # plot
+```
+
+&lt;img src="index_files/figure-html/change-indicators-2-1.svg" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Defining change points
+
+Significant change is where the simultaneous interval on derivative *excludes* 0
+
+&lt;img src="index_files/figure-html/change-indicators-3-1.svg" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Today's topics
+
+* Model checking, selection, and visualisation.
+
+* How do we do inference with GAMs?
+
+* Go beyond simple GAMs to include smooth interactions and models with multiples smooths.
+
+
+---
+
+# Smooth interactions
+
+Two ways to fit smooth interactions
+
+1. Bivariate (or higher order) thin plate splines
+    * `s(x, z, bs = 'tp')`
+    * Isotropic; single smoothness parameter for the smooth
+	* Sensitive to scales of `x` and `z`
+2. Tensor product smooths
+    * Separate marginal basis for each smooth, separate smoothness parameters
+	* Invariant to scales of `x` and `z`
+	* Use for interactions when variables are in different units
+	* `te(x, z)`
+
+---
+
+# Smooth interactions
+
+
+
+&lt;img src="index_files/figure-html/draw-tprs-vs-tensor-product-truth-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Smooth interactions
+
+
+``` r
+df
+```
+
+```
+## # A tibble: 500 × 3
+##          y       x       z
+##      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+##  1  0.136  0.0244  0.531  
+##  2  0.203  0.0216  0.00325
+##  3  0.358  0.0440  0.252  
+##  4 -0.0966 0.0382  0.155  
+##  5  0.437  0.00274 0.879  
+##  6  0.499  0.00996 0.204  
+##  7  0.465  0.0343  0.584  
+##  8  0.553  0.0450  0.804  
+##  9  0.441  0.00229 0.265  
+## 10  0.425  0.00448 0.406  
+## # ℹ 490 more rows
+```
+
+``` r
+m_tprs &lt;- gam(y ~ s(x, z), data = df, method = "REML")
+m_te   &lt;- gam(y ~ te(x, z), data = df, method = "REML")
+```
+
+---
+
+# Smooth interactions
+
+
+``` r
+truth_plt + (draw(m_tprs) + coord_cartesian()) + draw(m_te) + plot_layout(ncol = 3)
+```
+
+&lt;img src="index_files/figure-html/draw-tprs-vs-tensor-product-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Smooth interactions
+
+
+``` r
+layout(matrix(1:3, ncol = 3))
+persp(xs, zs, truth)
+vis.gam(m_tprs)
+vis.gam(m_te)
+layout(1)
+```
+
+&lt;img src="index_files/figure-html/plot-tprs-vs-tensor-product-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Tensor product smooths
+
+There are multiple ways to build tensor products in *mgcv*
+
+1. `te(x, z)`
+2. `t2(x, z)`
+3. `s(x) + s(z) + ti(x, z)`
+
+`te()` is the most general form but not usable in `gamm4::gamm4()` or *brms*
+
+`t2()` is an alternative implementation that does work in `gamm4::gamm4()` or *brms*
+
+`ti()` fits pure smooth interactions; where the main effects of `x` and `z` have been removed from the basis
+
+---
+
+# Tensor product smooths
+
+.center[
+&lt;img src="resources/wood-gams-2ed-fig-5-17-tensor-product.svg" width="50%" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+# Factor smooth interactions
+
+Two ways for factor smooth interactions
+
+1. `by` variable smooths
+    * entirely separate smooth function for each level of the factor
+	* each has it's own smoothness parameter
+	* centred (no group means) so include factor as a fixed effect
+	* `y ~ f + s(x, by = f)`
+2. `bs = 'fs'` basis
+    * smooth function for each level of the function
+	* share a common smoothness parameter
+	* fully penalized; include group means
+	* closer to random effects
+	* `y ~ s(x, f, bs = 'fs')`
+
+---
+
+# Random effects
+
+When fitted with REML or ML, smooths can be viewed as just fancy random effects
+
+Inverse is true too; random effects can be viewed as smooths
+
+If you have simple random effects you can fit those in `gam()` and `bam()` without needing the more complex GAMM functions `gamm()` or `gamm4::gamm4()`
+
+These two models are equivalent
+
+
+``` r
+m_nlme &lt;- lme(travel ~ 1, data = Rail, ~ 1 | Rail, method = "REML") 
+
+m_gam  &lt;- gam(travel ~ s(Rail, bs = "re"), data = Rail, method = "REML")
+```
+
+---
+
+# Random effects
+
+The random effect basis `bs = 're'` is not as computationally efficient as *nlme* or *lme4* for fitting
+
+* complex random effects terms, or
+* random effects with many levels
+
+Instead see `gamm()` and `gamm4::gamm4()`
+
+* `gamm()` fits using `lme()`
+* `gamm4::gamm4()` fits using `lmer()` or `glmer()`
+
+For non Gaussian models use `gamm4::gamm4()`
+
+---
+class: inverse center middle subsection
+
+# Model checking
+
+---
+
+# Model checking
+
+So you have a GAM:
+
+- How do you know you have the right degrees of freedom? `gam.check()`
+
+- Diagnosing model issues: `gam.check()` part 2
+
+---
+
+# GAMs are models too
+
+How accurate your predictions depends on how good the model is
+
+&lt;img src="index_files/figure-html/misspecify-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+
+---
+class: inverse center middle subsection
+
+# How do we test how well our model fits?
+
+---
+
+# Simulated data
+
+`y` varies sinusoidally with `x1`
+
+`y` varies sigmoidally with `x2`
+
+Simulate response data from Gaussian, negative binomial, &amp; binomial distributions
+
+``` r
+set.seed(2)
+n &lt;- 400
+x1 &lt;- rnorm(n)
+x2 &lt;- rnorm(n)
+y_val &lt;- 1 + 2*cos(pi*x1) + 2/(1+exp(-5*(x2)))
+y_norm &lt;- y_val + rnorm(n, 0, 0.5)
+y_negbinom &lt;- rnbinom(n, mu = exp(y_val),size=10)
+y_binom &lt;- rbinom(n,1,prob = exp(y_val)/(1+exp(y_val)))
+```
+
+---
+
+# Simulated data
+
+&lt;img src="index_files/figure-html/sims_plot-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: inverse middle center subsection
+
+# gam.check() part 1: do you have the right functional form?
+
+---
+
+# How well does the model fit?
+
+- Many choices: k, family, type of smoother, &amp;hellip;
+
+- How do we assess how well our model fits?
+
+---
+
+# Basis size *k*
+
+- Set `k` per term
+
+- e.g. `s(x, k=10)` or `s(x, y, k=100)`
+
+- Penalty removes "extra" wigglyness
+    
+	- *up to a point!*
+
+- (But computation is slower with bigger `k`)
+
+---
+
+# Checking basis size
+
+
+``` r
+norm_model_1 &lt;- gam(y_norm ~ s(x1, k = 4) + s(x2, k = 4), method = 'REML')
+gam.check(norm_model_1)
+```
+
+```
+## 
+## Method: REML   Optimizer: outer newton
+## full convergence after 8 iterations.
+## Gradient range [-0.0003467788,0.0005154578]
+## (score 736.9402 &amp; scale 2.252304).
+## Hessian positive definite, eigenvalue range [0.000346021,198.5041].
+## Model rank =  7 / 7 
+## 
+## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
+## indicate that k is too low, especially if edf is close to k'.
+## 
+##         k'  edf k-index p-value    
+## s(x1) 3.00 1.00    0.13  &lt;2e-16 ***
+## s(x2) 3.00 2.91    1.04    0.83    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+
+# Checking basis size
+
+
+``` r
+norm_model_2 &lt;- gam(y_norm ~ s(x1, k = 12) + s(x2, k = 4), method = 'REML')
+gam.check(norm_model_2)
+```
+
+```
+## 
+## Method: REML   Optimizer: outer newton
+## full convergence after 11 iterations.
+## Gradient range [-5.658609e-06,5.392657e-06]
+## (score 345.3111 &amp; scale 0.2706205).
+## Hessian positive definite, eigenvalue range [0.967727,198.6299].
+## Model rank =  15 / 15 
+## 
+## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
+## indicate that k is too low, especially if edf is close to k'.
+## 
+##          k'   edf k-index p-value   
+## s(x1) 11.00 10.84    0.99    0.38   
+## s(x2)  3.00  2.98    0.86    0.01 **
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+
+# Checking basis size
+
+
+``` r
+norm_model_3 &lt;- gam(y_norm ~ s(x1, k = 12) + s(x2, k = 12),method = 'REML')
+gam.check(norm_model_3)
+```
+
+```
+## 
+## Method: REML   Optimizer: outer newton
+## full convergence after 8 iterations.
+## Gradient range [-1.136212e-08,6.883383e-13]
+## (score 334.2084 &amp; scale 0.2485446).
+## Hessian positive definite, eigenvalue range [2.812271,198.6868].
+## Model rank =  23 / 23 
+## 
+## Basis dimension (k) checking results. Low p-value (k-index&lt;1) may
+## indicate that k is too low, especially if edf is close to k'.
+## 
+##          k'   edf k-index p-value
+## s(x1) 11.00 10.85    0.98    0.31
+## s(x2) 11.00  7.95    0.95    0.15
+```
+
+---
+
+# Checking basis size
+
+&lt;img src="index_files/figure-html/gam_check_norm4-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Checking basis size
+
+Two common ways that the `k.check()` (`gam.check()`) test will reject the null hypothesis of adequate basis size
+
+1. Unmodelled auto-correlation
+
+2. Incorrectly specified mean-variance relationship (wrong `family`)
+
+---
+
+# Checking basis size (alt)
+
+Model with `k` set to be too low for each smooth
+
+
+``` r
+norm_model_1 &lt;- gam(y_norm ~ s(x1, k = 4) + s(x2, k = 4), method = "REML")
+k.check(norm_model_1)
+```
+
+```
+##       k'      edf   k-index p-value
+## s(x1)  3 1.001710 0.1250378    0.00
+## s(x2)  3 2.913909 1.0446399    0.85
+```
+
+Alternate way of assessing if the basis size is sufficient is to take the deviance residuals from the model and fit a GAM to those with `family = quasi(link = "identity", variance = "constant")` and `k` doubled
+
+???
+
+Remember we had this model where we had set `k` to be too low for each of the two smooths
+
+---
+
+# Checking basis size (alt)
+
+
+``` r
+res &lt;- resid(norm_model_1, type = "deviance")
+
+res_model &lt;- gam(res ~ s(x1, k = 12) + s(x2, k = 12),
+  method = "REML",
+  family = quasi(link = "identity", variance = "constant"))
+edf(res_model)
+```
+
+```
+## # A tibble: 2 × 2
+##   .smooth  .edf
+##   &lt;chr&gt;   &lt;dbl&gt;
+## 1 s(x1)   10.8 
+## 2 s(x2)    7.29
+```
+
+---
+
+# Checking basis size (alt)
+
+``` r
+draw(res_model)
+```
+
+&lt;img src="index_files/figure-html/alt-basis-dim-check-3-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+
+---
+class: inverse middle center subsection
+
+# Model diagnostics
+
+---
+class: inverse middle center subsection
+
+# Using gam.check() part 2: visual checks
+
+---
+
+# gam.check() plots
+
+`gam.check()` creates 4 plots: 
+
+1. Quantile-quantile plots of residuals. If the model is right, should follow 1-1 line
+
+2. Histogram of residuals
+
+3. Residuals vs. linear predictor
+
+4. Observed vs. fitted values
+
+`gam.check()` uses deviance residuals by default
+
+---
+
+# Gaussian data, Gaussian model
+
+
+``` r
+norm_model &lt;- gam(y_norm ~ s(x1, k=12) + s(x2, k=12), method="REML")
+gam.check(norm_model, rep = 500)
+```
+
+&lt;img src="index_files/figure-html/gam_check_plots1-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Negative binomial data, Poisson model
+
+
+``` r
+pois_model &lt;- gam(y_negbinom ~ s(x1, k=12) + s(x2, k=12), family=poisson, method="REML")
+gam.check(pois_model, rep = 500)
+```
+
+&lt;img src="index_files/figure-html/gam_check_plots2-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# NB data, NB model
+
+
+``` r
+negbin_model &lt;- gam(y_negbinom ~ s(x1, k=12) + s(x2, k=12), family = nb, method="REML")
+gam.check(negbin_model, rep = 500)
+```
+
+&lt;img src="index_files/figure-html/gam_check_plots3-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# NB data, NB model
+
+
+``` r
+appraise(negbin_model, method = 'simulate')
+```
+
+&lt;img src="index_files/figure-html/appraise-gam-check-example-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# DHARMa &amp;mdash; alternate diagnostics
+
+The {DHARMa} 📦 by Florian Hartig provides additional diagnostics for a wide range of models
+
+DHARMa generates randomised quantile residuals from models
+
+Randomised quantile residuals are uniformly distributed
+
+These residuals are then used in model diagnostics
+
+---
+
+# DHARMa &amp;mdash; alternate diagnostics
+
+1. Simulate new response data from the fitted model for each observation.
+
+2. For each observation, calculate the empirical cumulative distribution function (ECDF) for the simulated observations, which describes the possible values at the predictor combination of the observed value, assuming the fitted model is correct.
+
+3. The residual is then defined as the value of the ECDF at the value of the observed data, so a residual of 0 means that all simulated values are larger than the observed value, and a residual of 0.5 means half of the simulated values are larger than the observed value.
+
+---
+
+# DHARMa &amp;mdash; alternate diagnostics
+
+&lt;img src="resources/dharma-randomised-residuals.png" width="50%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# DHARMa &amp;mdash; over dispersion
+
+A quick test for over dispersion is given by `testDispersion()`
+
+For the Poisson GAM fitted to Negative binomial data:
+
+
+``` r
+library("mgcViz")
+library("DHARMa")
+
+testDispersion(pois_model, plot = FALSE)
+```
+
+```
+## 
+## 	DHARMa nonparametric dispersion test via sd of residuals fitted vs.
+## 	simulated
+## 
+## data:  simulationOutput
+## dispersion = 6.9332, p-value &lt; 2.2e-16
+## alternative hypothesis: two.sided
+```
+
+---
+
+# DHARMa &amp;mdash; over dispersion
+
+A quick test for over dispersion is given by `testDispersion()`
+
+For the Negative binomial GAM fitted to Negative binomial data:
+
+
+``` r
+testDispersion(negbin_model, plot = FALSE)
+```
+
+```
+## 
+## 	DHARMa nonparametric dispersion test via sd of residuals fitted vs.
+## 	simulated
+## 
+## data:  simulationOutput
+## dispersion = 0.92591, p-value = 0.736
+## alternative hypothesis: two.sided
+```
+
+---
+
+# DHARMa &amp;mdash; randomised quantile residuals
+
+To generate just the randomised quantile residuals we use `simulateResiduals()`
+
+Do this to compute and store the residuals once, rather than for each test
+
+
+``` r
+resids &lt;- simulateResiduals(fittedModel = pois_model, plot = FALSE)
+```
+
+---
+
+# DHARMa &amp;mdash; randomised quantile residuals
+
+
+``` r
+plot(resids)
+```
+
+&lt;img src="index_files/figure-html/dharma-plots-possion-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# DHARMa &amp;mdash; randomised quantile residuals
+
+
+``` r
+resids &lt;- simulateResiduals(fittedModel = negbin_model, plot = FALSE)
+plot(resids)
+```
+
+&lt;img src="index_files/figure-html/dharma-plots-negbin-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+
+
+---
+class: inverse center middle subsection
+
+# Model selection
+
+---
+
+# Model selection
+
+Model (or variable) selection &amp;mdash; an important area of theoretical and applied interest
+
+- In statistics we aim for a balance between *fit* and *parsimony*
+
+- In applied research we seek the set of covariates with strongest effects on `\(y\)`
+
+We seek a subset of covariates that improves *interpretability* and *prediction accuracy*
+
+---
+class: inverse center middle
+
+# Shrinkage &amp; additional penalties
+
+---
+
+# Shrinkage &amp; additional penalties
+
+Smoothing parameter estimation allows selection of a wide range of potentially complex functions for smooths...
+
+But, cannot remove a term entirely from the model because the penalties used act only on the *range space* of a spline basis. The *null space* of the basis is unpenalised.
+
+- **Null space** &amp;mdash; the basis functions that are smooth (constant, linear)
+
+- **Range space** &amp;mdash; the basis functions that are wiggly
+
+---
+
+# Shrinkage &amp; additional penalties
+
+**mgcv** has two ways to penalize the null space, i.e. to do selection
+
+- *double penalty approach* via `select = TRUE`
+
+- *shrinkage approach* via special bases for
+    
+	- thin plate spline (default, `s(..., bs = 'ts')`),
+    
+	- cubic splines  (`s(..., bs = 'cs')`)
+
+**double penalty** tends to works best, but applies to all smooths *and* doubles the number of smoothness parameters to estimate
+
+Other shrinkage/selection approaches *are available* in other software
+
+---
+
+# Empirical Bayes...?
+
+`\(\mathbf{S}_j\)` can be viewed as prior precision matrices and `\(\lambda_j\)` as improper Gaussian priors on the spline coefficients.
+
+The impropriety derives from `\(\mathbf{S}_j\)` not being of full rank (zeroes in `\(\mathbf{\Lambda}_j\)`).
+
+Both the double penalty and shrinkage smooths remove the impropriety from the Gaussian prior
+
+---
+# Empirical Bayes...?
+
+- **Double penalty** &amp;mdash; makes no assumption as to how much to shrink the null space. This is determined from the data via estimation of `\(\lambda_j^{*}\)`
+
+- **Shrinkage smooths** &amp;mdash; assumes null space should be shrunk less than the wiggly part
+
+Marra &amp; Wood (2011) show that the double penalty and the shrinkage smooth approaches
+
+- performed significantly better than alternatives in terms of *predictive ability*, and
+
+- performed as well as alternatives in terms of variable selection
+
+---
+
+# Example
+
+- Simulate Poisson counts
+- 4 known functions (left)
+- 2 spurious covariates (`runif()` &amp; not shown)
+
+
+``` r
+## an example of automatic model selection via null space penalization
+n &lt;- 200
+dat &lt;- data_sim("eg1", n = n, scale = .15, dist = "poisson", seed = 3) ## simulate data
+set.seed(21)
+dat &lt;- dat %&gt;% mutate(x4 = runif(n, 0, 1), x5 = runif(n, 0, 1),
+                      f4 = rep(0, n), f5 = rep(0, n))   ## spurious
+```
+
+``` r
+b &lt;- gam(y ~ s(x0) + s(x1) + s(x2) + s(x3) +
+             s(x4) + s(x5),
+         data = dat, family = poisson, method = 'REML',
+         select = TRUE)
+```
+
+---
+
+# Example
+
+&lt;img src="index_files/figure-html/shrinkage-example-truth-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Example
+
+.smaller[
+
+``` r
+summary(b)
+```
+
+```
+## 
+## Family: poisson 
+## Link function: log 
+## 
+## Formula:
+## y ~ s(x0) + s(x1) + s(x2) + s(x3) + s(x4) + s(x5)
+## 
+## Parametric coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  1.21564    0.04087   29.74   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Approximate significance of smooth terms:
+##             edf Ref.df  Chi.sq p-value    
+## s(x0) 1.698e+00      9   4.554  0.0555 .  
+## s(x1) 1.937e+00      9  64.813  &lt;2e-16 ***
+## s(x2) 6.089e+00      9 158.767  &lt;2e-16 ***
+## s(x3) 7.431e-05      9   0.000  0.4534    
+## s(x4) 6.127e-01      9   0.894  0.2190    
+## s(x5) 8.089e-01      9   4.205  0.0217 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## R-sq.(adj) =  0.555   Deviance explained = 52.7%
+## -REML = 429.49  Scale est. = 1         n = 200
+```
+]
+
+---
+
+# Example
+
+
+``` r
+draw(b, scales = 'fixed')
+```
+
+&lt;img src="index_files/figure-html/shrinkage-example-plot-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+
+---
+class: inverse middle center subsection
+
+# Example
+
+---
+
+# Galveston Bay
+
+.row[
+
+.col-6[
+Cross Validated question
+
+&gt; I have a dataset of water temperature measurements taken from a large waterbody at irregular intervals over a period of decades. (Galveston Bay, TX if you’re interested)
+
+&lt;https://stats.stackexchange.com/q/244042/1390&gt;
+
+]
+
+.col-6[
+
+.center[
+&lt;img src="resources/cross-validated.png" width="1223" style="display: block; margin: auto;" /&gt;
+]
+
+]
+]
+
+---
+
+# Galveston Bay
+
+.small[
+
+``` r
+galveston &lt;- read_csv("https://bit.ly/gam-galveston") %&gt;%
+    mutate(datetime = as.POSIXct(paste(DATE, TIME),
+                                 format = '%m/%d/%y %H:%M', tz = "CDT"),
+           STATION_ID = factor(STATION_ID),
+           DoY = as.numeric(format(datetime, format = '%j')),
+           ToD = as.numeric(format(datetime, format = '%H')) +
+               (as.numeric(format(datetime, format = '%M')) / 60))
+galveston
+```
+
+```
+## # A tibble: 15,276 × 13
+##    STATION_ID DATE     TIME   LATITUDE LONGITUDE  YEAR MONTH   DAY SEASON
+##    &lt;fct&gt;      &lt;chr&gt;    &lt;time&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt; 
+##  1 13296      6/20/91  11:04      29.5     -94.8  1991     6    20 Summer
+##  2 13296      3/17/92  09:30      29.5     -94.8  1992     3    17 Spring
+##  3 13296      9/23/91  11:24      29.5     -94.8  1991     9    23 Fall  
+##  4 13296      9/23/91  11:24      29.5     -94.8  1991     9    23 Fall  
+##  5 13296      6/20/91  11:04      29.5     -94.8  1991     6    20 Summer
+##  6 13296      12/17/91 10:15      29.5     -94.8  1991    12    17 Winter
+##  7 13296      6/29/92  11:17      29.5     -94.8  1992     6    29 Summer
+##  8 13305      3/24/87  11:53      29.6     -95.0  1987     3    24 Spring
+##  9 13305      4/2/87   13:39      29.6     -95.0  1987     4     2 Spring
+## 10 13305      8/11/87  15:25      29.6     -95.0  1987     8    11 Summer
+## # ℹ 15,266 more rows
+## # ℹ 4 more variables: MEASUREMENT &lt;dbl&gt;, datetime &lt;dttm&gt;, DoY &lt;dbl&gt;, ToD &lt;dbl&gt;
+```
+]
+
+---
+
+# Galveston Bay model description
+
+$$
+`\begin{align}
+  \begin{split}
+      \mathrm{E}(y_i) &amp; = \alpha + f_1(\text{ToD}_i) + f_2(\text{DoY}_i) + f_3(\text{Year}_i) + f_4(\text{x}_i, \text{y}_i) + \\
+        &amp; \quad f_5(\text{DoY}_i, \text{Year}_i) + f_6(\text{x}_i, \text{y}_i, \text{ToD}_i) + \\
+        &amp; \quad f_7(\text{x}_i, \text{y}_i, \text{DoY}_i) + f_8(\text{x}_i, \text{y}_i, \text{Year}_i)
+  \end{split}
+\end{align}`
+$$
+
+* `\(\alpha\)` is the model intercept,
+* `\(f_1(\text{ToD}_i)\)` is a smooth function of time of day,
+* `\(f_2(\text{DoY}_i)\)` is a smooth function of day of year ,
+* `\(f_3(\text{Year}_i)\)` is a smooth function of year,
+* `\(f_4(\text{x}_i, \text{y}_i)\)` is a 2D smooth of longitude and latitude,
+
+---
+
+# Galveston Bay model description
+
+$$
+`\begin{align}
+  \begin{split}
+      \mathrm{E}(y_i) &amp; = \alpha + f_1(\text{ToD}_i) + f_2(\text{DoY}_i) + f_3(\text{Year}_i) + f_4(\text{x}_i, \text{y}_i) + \\
+        &amp; \quad f_5(\text{DoY}_i, \text{Year}_i) + f_6(\text{x}_i, \text{y}_i, \text{ToD}_i) + \\
+        &amp; \quad f_7(\text{x}_i, \text{y}_i, \text{DoY}_i) + f_8(\text{x}_i, \text{y}_i, \text{Year}_i)
+  \end{split}
+\end{align}`
+$$
+
+* `\(f_5(\text{DoY}_i, \text{Year}_i)\)` is a tensor product smooth of day of year and year,
+* `\(f_6(\text{x}_i, \text{y}_i, \text{ToD}_i)\)` tensor product smooth of location &amp; time of day
+* `\(f_7(\text{x}_i, \text{y}_i, \text{DoY}_i)\)` tensor product smooth of location day of year&amp; 
+* `\(f_8(\text{x}_i, \text{y}_i, \text{Year}_i\)` tensor product smooth of location &amp; year
+
+---
+
+# Galveston Bay model description
+
+$$
+`\begin{align}
+  \begin{split}
+      \mathrm{E}(y_i) &amp; = \alpha + f_1(\text{ToD}_i) + f_2(\text{DoY}_i) + f_3(\text{Year}_i) + f_4(\text{x}_i, \text{y}_i) + \\
+        &amp; \quad f_5(\text{DoY}_i, \text{Year}_i) + f_6(\text{x}_i, \text{y}_i, \text{ToD}_i) + \\
+        &amp; \quad f_7(\text{x}_i, \text{y}_i, \text{DoY}_i) + f_8(\text{x}_i, \text{y}_i, \text{Year}_i)
+  \end{split}
+\end{align}`
+$$
+
+Effectively, the first four smooths are the main effects of
+
+1. time of day,
+2. season,
+3. long-term trend,
+4. spatial variation
+
+---
+
+# Galveston Bay model description
+
+$$
+`\begin{align}
+  \begin{split}
+      \mathrm{E}(y_i) &amp; = \alpha + f_1(\text{ToD}_i) + f_2(\text{DoY}_i) + f_3(\text{Year}_i) + f_4(\text{x}_i, \text{y}_i) + \\
+        &amp; \quad f_5(\text{DoY}_i, \text{Year}_i) + f_6(\text{x}_i, \text{y}_i, \text{ToD}_i) + \\
+        &amp; \quad f_7(\text{x}_i, \text{y}_i, \text{DoY}_i) + f_8(\text{x}_i, \text{y}_i, \text{Year}_i)
+  \end{split}
+\end{align}`
+$$
+
+whilst the remaining tensor product smooths model smooth interactions between the stated covariates, which model
+
+5. how the seasonal pattern of temperature varies over time,
+6. how the time of day effect varies spatially,
+7. how the seasonal effect varies spatially, and
+8. how the long-term trend varies spatially
+
+---
+
+# Galveston Bay &amp;mdash; full model
+
+
+``` r
+knots &lt;- list(DoY = c(0.5, 366.5))
+m &lt;- bam(MEASUREMENT ~
+             s(ToD, k = 10) +
+             s(DoY, k = 12, bs = "cc") +
+             s(YEAR, k = 30) +
+             s(LONGITUDE, LATITUDE, k = 100, bs = "ds", m = c(1, 0.5)) +
+             ti(DoY, YEAR, bs = c("cc", "tp"), k = c(12, 15)) +
+             ti(LONGITUDE, LATITUDE, ToD, d = c(2,1), bs = c("ds", "tp"),
+                m = list(c(1, 0.5), NA), k = c(20, 10)) +
+             ti(LONGITUDE, LATITUDE, DoY, d = c(2,1), bs = c("ds", "cc"),
+                m = list(c(1, 0.5), NA), k = c(25, 12)) +
+             ti(LONGITUDE, LATITUDE, YEAR, d = c(2,1), bs = c("ds", "tp"),
+                m = list(c(1, 0.5), NA), k = c(25, 15)),
+         data = galveston, method = "fREML", knots = knots,
+         nthreads = c(6, 1), discrete = FALSE)
+```
+
+---
+
+# Galveston Bay &amp;mdash; simpler model
+
+
+``` r
+m.sub &lt;- bam(MEASUREMENT ~
+             s(ToD, k = 10) +
+             s(DoY, k = 12, bs = "cc") +
+             s(YEAR, k = 30) +
+             s(LONGITUDE, LATITUDE, k = 100, bs = "ds", m = c(1, 0.5)) +
+             ti(DoY, YEAR, bs = c("cc", "tp"), k = c(12, 15)),
+         data = galveston, method = "fREML", knots = knots,
+         nthreads = c(4, 1), discrete = TRUE)
+```
+
+---
+
+# Galveston Bay &amp;mdash; simpler model?
+
+
+``` r
+AIC(m, m.sub)
+```
+
+```
+##             df      AIC
+## m     484.7684 58544.03
+## m.sub 238.2766 59193.50
+```
+---
+
+# Galveston Bay &amp;mdash; simpler model?
+
+.smaller[
+
+``` r
+anova(m, m.sub, test = "F")
+```
+
+```
+## Analysis of Deviance Table
+## 
+## Model 1: MEASUREMENT ~ s(ToD, k = 10) + s(DoY, k = 12, bs = "cc") + s(YEAR, 
+##     k = 30) + s(LONGITUDE, LATITUDE, k = 100, bs = "ds", m = c(1, 
+##     0.5)) + ti(DoY, YEAR, bs = c("cc", "tp"), k = c(12, 15)) + 
+##     ti(LONGITUDE, LATITUDE, ToD, d = c(2, 1), bs = c("ds", "tp"), 
+##         m = list(c(1, 0.5), NA), k = c(20, 10)) + ti(LONGITUDE, 
+##     LATITUDE, DoY, d = c(2, 1), bs = c("ds", "cc"), m = list(c(1, 
+##         0.5), NA), k = c(25, 12)) + ti(LONGITUDE, LATITUDE, YEAR, 
+##     d = c(2, 1), bs = c("ds", "tp"), m = list(c(1, 0.5), NA), 
+##     k = c(25, 15))
+## Model 2: MEASUREMENT ~ s(ToD, k = 10) + s(DoY, k = 12, bs = "cc") + s(YEAR, 
+##     k = 30) + s(LONGITUDE, LATITUDE, k = 100, bs = "ds", m = c(1, 
+##     0.5)) + ti(DoY, YEAR, bs = c("cc", "tp"), k = c(12, 15))
+##   Resid. Df Resid. Dev      Df Deviance      F    Pr(&gt;F)    
+## 1     14684      38759                                      
+## 2     15022      41769 -338.25  -3009.8 3.3979 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+]
+
+---
+
+# Galveston Bay &amp;mdash; full model summary
+
+.small[
+
+``` r
+summary(m)
+```
+
+```
+## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## MEASUREMENT ~ s(ToD, k = 10) + s(DoY, k = 12, bs = "cc") + s(YEAR, 
+##     k = 30) + s(LONGITUDE, LATITUDE, k = 100, bs = "ds", m = c(1, 
+##     0.5)) + ti(DoY, YEAR, bs = c("cc", "tp"), k = c(12, 15)) + 
+##     ti(LONGITUDE, LATITUDE, ToD, d = c(2, 1), bs = c("ds", "tp"), 
+##         m = list(c(1, 0.5), NA), k = c(20, 10)) + ti(LONGITUDE, 
+##     LATITUDE, DoY, d = c(2, 1), bs = c("ds", "cc"), m = list(c(1, 
+##         0.5), NA), k = c(25, 12)) + ti(LONGITUDE, LATITUDE, YEAR, 
+##     d = c(2, 1), bs = c("ds", "tp"), m = list(c(1, 0.5), NA), 
+##     k = c(25, 15))
+## 
+## Parametric coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 21.61913    0.02078    1040   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Approximate significance of smooth terms:
+##                                 edf Ref.df         F p-value    
+## s(ToD)                        1.000   1.00    25.979 8.8e-07 ***
+## s(DoY)                        9.896  10.00 13430.960 &lt; 2e-16 ***
+## s(YEAR)                      28.026  28.75    75.994 &lt; 2e-16 ***
+## s(LONGITUDE,LATITUDE)        69.104  99.00     6.713 &lt; 2e-16 ***
+## ti(DoY,YEAR)                131.299 140.00    34.690 &lt; 2e-16 ***
+## ti(LONGITUDE,LATITUDE,ToD)   50.398 171.00     0.981 &lt; 2e-16 ***
+## ti(LONGITUDE,LATITUDE,DoY)   92.991 240.00     1.301 &lt; 2e-16 ***
+## ti(LONGITUDE,LATITUDE,YEAR)  91.791 287.00     1.305 &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## R-sq.(adj) =   0.94   Deviance explained = 94.2%
+## fREML =  29799  Scale est. = 2.6187    n = 15276
+```
+]
+
+---
+
+# Galveston Bay &amp;mdash; full model plot
+
+
+``` r
+plot(m, pages = 1, scheme = 2, shade = TRUE)
+```
+
+&lt;img src="index_files/figure-html/galveston-full-model-plot-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Galveston Bay &amp;mdash; full model plot
+
+
+``` r
+draw(m, scales = "free", rug = FALSE, n = 50) +  plot_layout(widths = 1) &amp;
+  theme(strip.text.x = element_text(size = 8))
+```
+
+&lt;img src="index_files/figure-html/galveston-full-model-draw-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Galveston Bay &amp;mdash; predict
+
+
+``` r
+pdata &lt;- data_slice(m, ToD = 12, DoY = 180,
+                    YEAR = evenly(YEAR, by = 1),
+                    LONGITUDE = evenly(LONGITUDE, n = 50),
+                    LATITUDE  = evenly(LATITUDE, n = 50))
+fv &lt;- fitted_values(m, data = pdata)
+# set fitted values to NA for grid points that are too far from the data
+ind &lt;- too_far(pdata$LONGITUDE, pdata$LATITUDE,
+               galveston$LONGITUDE, galveston$LATITUDE, dist = 0.1)
+fv &lt;- fv %&gt;%
+  mutate(fitted = if_else(ind, NA_real_, .fitted))
+```
+
+---
+
+# Galveston Bay &amp;mdash; plot
+
+
+``` r
+plt &lt;- ggplot(fv, aes(x = LONGITUDE, y = LATITUDE)) +
+    geom_raster(aes(fill = .fitted)) + facet_wrap(~ YEAR, ncol = 12) +
+    scale_fill_viridis(name = expression(degree*C), option = "plasma",
+      na.value = "transparent") +
+    coord_quickmap() +
+    scale_x_continuous(guide = guide_axis(n.dodge = 2,
+                                          check.overlap = TRUE)) +
+    theme(legend.position = "top")
+plt
+```
+
+---
+
+# Galveston Bay &amp;mdash; plot
+
+&lt;img src="index_files/figure-html/galveston-full-predict-plot-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Galveston Bay &amp;mdash;
+
+
+
+.center[![](resources/galveston-animation.gif)]
+
+---
+
+# Galveston Bay &amp;mdash; plot trends
+
+
+``` r
+ds &lt;- data_slice(m, ToD = 12, DoY = c(1, 90, 180, 270),
+  YEAR = evenly(YEAR, n = 250),
+  LONGITUDE = -94.8751, LATITUDE  = 29.50866)
+fv &lt;- fitted_values(m, data = ds, scale = "response")
+
+plt2 &lt;- ggplot(fv, aes(x = YEAR, y = .fitted, group = factor(DoY))) +
+    geom_ribbon(aes(ymin = .lower_ci, ymax = .upper_ci), fill = "black", alpha = 0.2) +
+    geom_line() + facet_wrap(~ DoY, scales = "free_y") +
+    labs(x = NULL, y = expression(Temperature ~ (degree * C)))
+plt2
+```
+
+---
+
+# Galveston Bay &amp;mdash; plot trends
+
+&lt;img src="index_files/figure-html/galveston-trends-by-month-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Next steps
+
+Read Simon Wood's book!
+
+Lots more material on our ESA GAM Workshop site
+
+[https://noamross.github.io/mgcv-esa-workshop/]()
+
+Noam Ross' free GAM Course
+
+&lt;https://noamross.github.io/gams-in-r-course/&gt;
+
+Noam also maintains a list of [GAM Resources](https://github.com/noamross/gam-resources)
+
+A couple of papers:
+
+.smaller[
+1. Simpson, G.L., 2018. Modelling Palaeoecological Time Series Using Generalised Additive Models. Frontiers in Ecology and Evolution 6, 149. https://doi.org/10.3389/fevo.2018.00149
+2. Pedersen, E.J., Miller, D.L., Simpson, G.L., Ross, N., 2019. Hierarchical generalized additive models in ecology: an introduction with mgcv. PeerJ 7, e6876. https://doi.org/10.7717/peerj.6876
+]
+
+Also see my blog: [fromthebottomoftheheap.net](http://fromthebottomoftheheap.net)
+
+---
+
+# Reuse
+
+* HTML Slide deck [bit.ly/physalia-gam-3](https://bit.ly/physalia-gam-3) &amp;copy; Simpson (2020-2022) [![Creative Commons Licence](https://i.creativecommons.org/l/by/4.0/88x31.png)](http://creativecommons.org/licenses/by/4.0/)
+* RMarkdown [Source](https://bit.ly/physalia-gam)
+
+---
+
+# References
+
+- [Marra &amp; Wood (2011) *Computational Statistics and Data Analysis* **55** 2372&amp;ndash;2387.](http://doi.org/10.1016/j.csda.2011.02.004)
+- [Marra &amp; Wood (2012) *Scandinavian Journal of Statistics, Theory and Applications* **39**(1), 53&amp;ndash;74.](http://doi.org/10.1111/j.1467-9469.2011.00760.x.)
+- [Nychka (1988) *Journal of the American Statistical Association* **83**(404) 1134&amp;ndash;1143.](http://doi.org/10.1080/01621459.1988.10478711)
+- Wood (2017) *Generalized Additive Models: An Introduction with R*. Chapman and Hall/CRC. (2nd Edition)
+- [Wood (2013a) *Biometrika* **100**(1) 221&amp;ndash;228.](http://doi.org/10.1093/biomet/ass048)
+- [Wood (2013b) *Biometrika* **100**(4) 1005&amp;ndash;1010.](http://doi.org/10.1093/biomet/ast038)
+- [Wood et al (2016) *JASA* **111** 1548&amp;ndash;1563](https://doi.org/10.1080/01621459.2016.1180986)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
