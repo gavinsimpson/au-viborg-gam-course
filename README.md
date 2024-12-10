@@ -20,16 +20,16 @@ Gavin Simpson, Assistant Professor, Department of Animal and Veterinary Sciences
 
 You can register for the course here: <https://events.au.dk/phdcoursegeneralizedadditivemodellingwithr>
 
-<!-- ### Slides
+### Slides
 
 
-* [Tuesday](https://gavinsimpson.github.io/au-multivariate-stats/slides/02-unconstrained-ordination/slides.html)
+* [Tuesday](https://gavinsimpson.github.io/au-viborg-gam-course/01-materials/index.html)
 
-* [Wednesday](https://gavinsimpson.github.io/au-multivariate-stats/slides/03-constrained-ordination/slides.html)
+* [Wednesday](https://gavinsimpson.github.io/au-viborg-gam-course/02-materials/index.html)
 
-* [Thursday](https://gavinsimpson.github.io/au-multivariate-stats/slides/04-permutation-tests/slides.html)
+* [Thursday](https://gavinsimpson.github.io/au-viborg-gam-course/03-materials/index.html)
 
-### Computing
+<!-- ### Computing
 
 
 * [Tuesday](https://gavinsimpson.github.io/au-multivariate-stats/computing/02-unconstrained-ordination/unconstrained-ordination.html)
