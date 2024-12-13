@@ -82,6 +82,38 @@ ggplot(m1_pred, aes(x = transf_time, y = .fitted, group = subject,
     facet_wrap(~ treatment) +
     plt_labs
 
+# plotting the population level effects
+# identify the smooths associated with random effects
+sms <- smooths(m1_gam)
+sms
+# here both smooths are random effect smooths
+
+# We want to exclude any random effects when we predict or estimate from the
+# model to get the population level effects
+conditional_values(m1_gam, condition = c("transf_time", "treatment"),
+                   exclude = sms[1:2]) |>
+  draw()
+
+# we can achieve the same using the marginaleffects package
+library("marginaleffects")
+avg_slopes(m1_gam, variable = "transf_time", by = "treatment",
+           exclude = sms[1:2])
+
+# Instead we see the estimated slope per group
+plot_slopes(m1_gam, variable = "transf_time", by = "treatment",
+            exclude = sms[1:2])
+
+# if we want to compute differences of slopes we can use the hypothesis argument
+# in this example we are asking for comparisons with the reference level, the controls
+avg_slopes(m1_gam, variable = "transf_time", by = "treatment",
+           exclude = sms[1:2],
+           hypothesis = difference ~ reference | group)
+
+# In this variant we ask for pairwise comparisons of the treatment levels
+avg_slopes(m1_gam, variable = "transf_time", by = "treatment",
+           exclude = sms[1:2],
+           hypothesis = "pairwise")
+
 m2_lmer <- lmer(response ~ treatment:transf_time +
                     (1 | subject),
                 data = rats)

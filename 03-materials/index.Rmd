@@ -631,7 +631,7 @@ where
 * $\gamma_{0i}$ is the rat-specific mean (random intercept)
 * $\gamma_{qi} \cdot t_{ij}$ is the rat-specific effect of `transf_time` (random slope)
 
-Code to fit this model in `lmer()` and `gam()` is in `day-4/rat-hormone-example.R`
+Code to fit this model in `lmer()` and `gam()` is in `03-materials/rat-hormone-example.R`
 
 ???
 

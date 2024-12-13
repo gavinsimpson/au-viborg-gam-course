@@ -43,10 +43,27 @@ m1_hgam <- gam(response ~ s(time, k = K) +
                   s(subject, bs = "re"),
                data = rats, method = "REML")
 
+new_data <- tidyr::expand(rats, nesting(subject, treatment),
+                          time = evenly(time, n = 100))
+
+fv <- fitted_values(m1_hgam, data = new_data)
+
+fv |>
+  ggplot(aes(x = time, y = .fitted, group = subject, colour = treatment)) +
+  geom_line() +
+  facet_wrap(~ treatment)
+
 ## this is Model S at the treatment level
 m2_hgam <- gam(response ~ s(time, treatment, bs = "fs", k = K) +
                   s(subject, bs = "re"),
                data = rats, method = "REML")
+
+fv <- fitted_values(m2_hgam, data = new_data)
+
+fv |>
+  ggplot(aes(x = time, y = .fitted, group = subject, colour = treatment)) +
+  geom_line() +
+  facet_wrap(~ treatment)
 
 ## this is Model I at the treatment level
 m3_hgam <- gam(response ~ treatment +
@@ -60,16 +77,33 @@ m4_hgam <- gam(response ~ treatment + s(time, k = K) +
                   s(subject, bs = "re"),
                data = rats, method = "REML")
 
+m4a_hgam <- gam(response ~ s(time, k = K) +
+                 s(time, treatment, k = K, bs = "sz") +
+                 s(subject, bs = "re"),
+               data = rats, method = "REML")
+
+m4b_hgam <- gam(response ~ s(time, k = K) +
+                  s(time, treatment, k = K, bs = "sz") +
+                  s(time, subject, bs = "fs", k = 7),
+                data = rats, method = "REML")
+
 new_data <- tidyr::expand(rats, nesting(subject, treatment),
                           time = evenly(time, n = 100))
 
-fv <- fitted_values(m4_hgam, data = new_data)
+fv <- fitted_values(m4b_hgam, data = new_data)
 
 ggplot(fv, aes(x = time, y = .fitted,
                group = subject, colour = treatment)) +
   geom_line() +
   facet_wrap(~ treatment, ncol = 3) +
   plt_labs
+
+conditional_values(m4b_hgam, condition = c("time", "treatment"),
+                   exclude = smooths(m4b_hgam)[3]) |>
+  draw()
+
+plot_predictions(m4b_hgam, condition = c("time", "treatment"),
+                 exclude = smooths(m4b_hgam)[3])
 
 ## this is Model GS at the treatment level
 m5_hgam <- gam(response ~ s(time, k = K) +

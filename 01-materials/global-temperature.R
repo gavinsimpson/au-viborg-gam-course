@@ -5,6 +5,7 @@ library("readr")
 library("dplyr")
 library("mgcv")
 library("gratia")
+library("ggplot2")
 
 # load the data from the web
 URL <- "https://bit.ly/hadcrutv4"
@@ -51,3 +52,8 @@ ggplot(aes(x = Year, y = .fitted)) +
                 fill = "#fdb338") +
     geom_line(linewidth = 1, colour = "#025196") +
     labs(x = "Year", y = expression(Temperature ~ degree * C))
+
+conditional_values(m_gtemp, condition = "Year") |>
+  draw()
+
+marginaleffects::plot_predictions(m_gtemp, condition = "Year")

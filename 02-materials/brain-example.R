@@ -144,11 +144,11 @@ summary(m_fac_by)
 draw(m_fac_by, dist = 0.03)
 
 # compute the difference between the two surfaces
-diffs <- difference_smooths(m_fac_by, smooth = "s(Y,X)")
+diffs <- difference_smooths(m_fac_by, select = "s(Y,X)")
 diffs
 
 # plot the difference
-draw(diffs)
+draw(diffs) & coord_equal()
 
 # ordered factor provides another way to do this
 # first smooth is for the reference level of the factor and the
