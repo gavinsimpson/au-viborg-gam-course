@@ -2,15 +2,15 @@
 
 ### Aarhus University PhD Course
 
-* 2024 running: December 10<sup>th</sup> &ndash; 12<sup>th</sup>
+* 2026 running: June 9<sup>th</sup> &ndash; 11<sup>th</sup>
 
-* Class times: 0930-1600
+* Class times: 0900-1600
 
 * ECTS credits: 1.5 ECTS
 
 * Language: English
 
-* Fee: 350 DKK
+* Fee: 400 DKK
 
 ## Name of course leader
 
@@ -95,24 +95,24 @@ and look at the entry next to `version.string`:
 
 ```
 r$> version                                                                     
-               _                           
-platform       x86_64-pc-linux-gnu         
-arch           x86_64                      
-os             linux-gnu                   
-system         x86_64, linux-gnu           
-status                                     
-major          4                           
-minor          2.1                         
-year           2022                        
-month          06                          
-day            23                          
-svn rev        82513                       
-language       R                           
-version.string R version 4.2.1 (2022-06-23)
-nickname       Funny-Looking Kid
+               _
+platform       aarch64-apple-darwin23
+arch           aarch64
+os             darwin23
+system         aarch64, darwin23
+status
+major          4
+minor          6.0
+year           2026
+month          04
+day            24
+svn rev        89956
+language       R
+version.string R version 4.6.0 (2026-04-24)
+nickname       Because it was There
 ```
 
-This should include `4.4.x` if you are running the latest release, but should be no lower than `4.2.0`. If the installed version of R is < 4.4.0, install a newer version of R by downloading and running one of the installers from [cloud.r-project.org](https://cloud.r-project.org/) as mentioned above.
+This should include `4.6.x` if you are running the latest release, but should be no lower than `4.5.0`. If the installed version of R is < 4.5.0, install a newer version of R by downloading and running one of the installers from [cloud.r-project.org](https://cloud.r-project.org/) as mentioned above.
 
 To check that RStudio is up-to-date, open RStudio, open the Help menu, and choose *Check for Updates*. RStudio will then check to see if there is a newer version available and if there is it will give you the option to download the newer version.
 
@@ -140,7 +140,7 @@ pkgs <- c("mgcv", "tidyverse", "readxl", "mgcViz", "DHARMa", "gratia")
 install.packages(pkgs, Ncpus = 4) # set Ncpus to # of *physical* CPU cores you have
 ```
 
-Finally, I'd like to use the beta version of my *gratia* package as it has some nice new quality-of-life features. To install this, please run:
+Finally, I'd like to use the dev version of my *gratia* package as it has some nice new quality-of-life features. To install this, please run:
 
 ```r
 install.packages("gratia", repos = c(
