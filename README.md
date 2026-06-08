@@ -18,7 +18,7 @@ Gavin Simpson, Assistant Professor, Department of Animal and Veterinary Sciences
 
 ### Registration
 
-You can register for the course here: <https://events.au.dk/phdcoursegeneralizedadditivemodellingwithr>
+You can register for the course here: <https://event.au.dk/events/generalized-additive-modelling-with-r/>
 
 ### Slides
 

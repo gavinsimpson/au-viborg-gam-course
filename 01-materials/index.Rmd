@@ -3,7 +3,7 @@ title: "Generalized Additive Models"
 subtitle: "a data-driven approach to estimating regression models"
 institute: "Department of Animal & Veterinary Sciences · Aarhus University"
 author: "Gavin Simpson"
-date: "0930&ndash;1600 CET Tuesday 10th December, 2024"
+date: "0900&ndash;1500 CET Tuesday 9th June, 2026"
 output:
   xaringan::moon_reader:
     css: ['default', 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css', 'slides.css']
@@ -41,6 +41,7 @@ library("viridis")
 library('readr')
 library('dplyr')
 library('gganimate')
+library("ggokabeito")
 
 ## plot defaults
 theme_set(theme_bw(base_size = 16, base_family = 'Fira Sans'))
@@ -55,11 +56,342 @@ anim_res <- 200
 
 # Today's topics
 
+* GLMs
+
 * How do GAMs work?
 
 * What are splines?
 
 * How do GAMs learn from data without overfitting?
+
+---
+class: inverse middle center huge-subsection
+
+# GLMs
+
+---
+
+# GAMs are (just) fancy GLMs
+
+To make effective use of GAMs we need to grasp the basics of GLMs
+
+A **G**eneralized **L**inear **M**odel is a statistical model that allows the response to be conditionally distributed according to a wider set of distributions than the Gaussian of linear regression
+
+---
+
+# Statistical models
+
+Fit statistical models to data &rarr; estimate parameters &rarr; assess uncertainty
+
+Generally used to test **scientific hypotheses** operationalised as a statistical model
+
+```{r statistical-model-example, echo = FALSE, fig.align="center", out.width="60%"}
+set.seed(1)
+df <- data.frame(x = runif(100))
+df <- transform(df, y = 2 + (0.85 * x) + rnorm(100, sd = 0.25))
+ggplot(df, aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+---
+
+# Linear models
+
+The linear model behind the data we saw a couple of slides ago was
+
+$$ \hat{y}_i = 2 + (0.85 \times x_i) $$
+
+This is the equation of a straight line, more generally
+
+$$ \hat{y}_i = b + (a \times x_i) $$
+
+$$ \hat{y}_i = \beta_0 + \beta_1 x_i $$
+
+> Q: What values can this model predict for $y_i$?
+
+---
+
+# Linear models
+
+The problem with using linear models is that
+
+1. They can predict values for $y_i$ that are biologically nonsensical,
+
+2. They fail to capture the mean-variance relationships commonly encountered in biological data
+
+We could transform $y_i$ but then we would be modelling something other than $\hat{y_i}$, which statisticians call the expected value of $Y$
+
+$$ \mathbb{E}(y_i) $$
+
+Usually we are interested in $\mathbb{E}(y_i)$, not $\mathbb{E}(\log(y_i))$
+
+---
+
+# Generalized linear models
+
+Generalised linear models (GLMs) are an extension of linear regression & include Poisson, logistic and other regression models
+
+GLMs extend the types of data and error distributions that can be modelled beyond the Gaussian data of linear regression
+
+With GLMs we can model count data, binary/presence absence data, and concentration data where the response variable is not continuous
+
+Such data have different mean-variance relationships and we would not expect errors to be Gaussian
+
+---
+
+# Generalized linear models
+
+Typical uses of GLMs are
+
+- Poisson GLM for count data
+- Logistic GLM for presence absence data
+- Gamma GLM for non-negative or positive continuous data
+
+GLMs can handle many problems that appear non-linear
+
+Not necessary to transform data as this is handled as part of the GLM process
+
+---
+
+# Binomial distribution
+
+* For a fixed number of trials (*n*),
+* fixed probability of “success” (*p*), &
+* two outcomes per trial (heads or tails)
+
+Flip a coin 10 times with *p* = 0.7, the probability of 7 heads is $\sim \mathcal{B}(n = 10, p = 0.7)$, ~ 0.27
+
+```{r}
+dbinom(x = 7, size = 10, prob = 0.7)
+```
+
+---
+
+# Binomial distribution
+
+```{r binomial-pdf, echo = FALSE, fig.height=4}
+## Binomial Probability mass function
+s <- seq(0, 40, by = 1)
+n <- rep(c(20, 20, 40), each = length(s))
+binom.pmf <- data.frame(x = rep(s, 3),
+                        n = rep(c(20, 20, 40), each = length(s)),
+                        p = rep(c(0.5, 0.7, 0.5), each = length(s)))
+binom.pmf <- mutate(
+  binom.pmf,
+  pmf = dbinom(x, size = n, prob = p),
+  params = paste("n=", n, "; p=", p, sep = ""),
+  params = factor(params, levels = unique(params))
+)
+
+plt.binom <- ggplot(binom.pmf, aes(x = x, y = pmf, fill = params)) +
+  geom_col() + labs(y = "Probability Mass", x = "No. of Successes") +
+  facet_wrap(~ params) + scale_fill_okabe_ito() +
+  theme(legend.position = "none")
+plt.binom
+```
+
+---
+
+# Poisson distribution
+
+The Poisson gives the distribution of the number of “things” (individuals, events, counts) in a given sampling interval/effort if each event is **independent**
+
+Has a single parameter $\lambda$ the average density or arrival rate
+
+---
+
+# Poisson distribution
+
+```{r poisson-pdf, echo = FALSE, fig.height=4}
+s <- seq(0, 20, by = 1)
+poisson.pmf <- data.frame(
+  x = rep(s, 3),
+  lambda = rep(c(1, 4, 10), each = length(s))
+)
+poisson.pmf <- mutate(
+  poisson.pmf,
+  pmf = dpois(x, lambda = lambda),
+  params = paste("lambda=", lambda, sep = ""),
+  params = factor(params, levels = unique(params))
+)
+
+plt.poisson <- ggplot(poisson.pmf, aes(x = x, y = pmf, fill = params)) +
+  geom_col() + labs(y = "Probability Mass", x = "Count", fill = NULL) +
+  facet_wrap(~ params) + scale_fill_okabe_ito() +
+  theme(legend.position = "none")
+plt.poisson
+```
+
+---
+
+# Exponential family
+
+The binomial and Poisson distributions are part of a larger family **exponential family**
+
+Also include the Gaussian distribution
+
+GLMs *sensu stricto* were created for members of the **exponential [dispersion] family**
+
+General ideas we will encounter with GAMs extend to distributions beyond this family
+
+---
+
+# The structure of a GLM
+
+.small[
+1. A **Random component**, specifying the conditional distribution of of the response $y_i$ given the values of the explanatory data
+2. A **Linear Predictor** $\eta$ &mdash; the linear function of regressors
+    $$\eta_i = \alpha + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_k x_{ik}$$
+	The $x_{ij}$ are prescribed functions of the explanatory variables and can be transformed variables, dummy variables, polynomial terms, interactions etc.
+3. A smooth and invertible **Link Function** $g(\cdot)$, which transforms the expectation of the response $\mu_i \equiv \mathbb{E}(y_i)$ to the linear predictor
+    $$g(\mu_i) = \eta_i = \alpha + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_k x_{ik}$$
+    As $g(\cdot)$ is invertible, we can write
+    $$\mu_i = g^{-1}(\eta_i) = g^{-1}(\alpha + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_k x_{ik})$$
+]
+
+---
+
+# Conditional distribution of $y_i$
+
+Originally GLMs were specified for random components belonging to the *exponential family* of probability distributions
+
+- Continuous probability distributions
+    - Gaussian (or normal distribution; used in linear regression)
+	- Gamma (data with constant coefficient of variation)
+	- Exponential (time to death, survival analysis)
+	- Chi-square
+	- Inverse-Gaussian
+- Discrete probability distributions
+    - Poisson (count data)
+	- Binomial (0/1 data, counts from a total)
+	- Multinomial
+
+Choice depends on range of $y_i$ and on the relationship between the variance and the expectation of $y_i$ &mdash; *mean-variance relationship*
+
+---
+
+# Conditional distribution of $y_i$
+
+Characteristics of common GLM probability distributions
+
+
+|                  | Canonical Link | Range of $Y_i$               |              Variance function |
+|------------------|----------------|------------------------------|--------------------------------|
+| Gaussian         | Identity       | $(-\infty, +\infty)$         | $\phi$                         |
+| Poisson          | Log            | $0,1,2,\ldots,\infty$        | $\mu_i$                        |
+| Binomial         | Logit          | $\frac{0,1,\ldots,n_i}{n_i}$ | $\frac{\mu_i(1 - \mu_i)}{n_i}$ |
+| Gamma            | Inverse        | $(0, \infty)$                | $\phi \mu_i^2$                 |
+| Inverse-Gaussian | Inverse-square | $(0, \infty)$                | $\phi \mu_i^3$                 |
+
+
+$\phi$ is the dispersion parameter; $\mu_i$ is the expectation of $y_i$. In the binomial family, $n_i$ is the number of trials
+
+---
+
+# Common probability distributions
+
+Gaussian distribution is rarely adequate in applied science; GLMs offer useful alternatives
+
+.small[
+- **Poisson** &mdash; counts; integers, non-negative, variance increases with mean
+
+- **Binomial** &mdash; observed proportions from a total; integers, non-negative, bounded at 0 and 1, variance largest at $\pi = 0.5$
+
+- **Binomial** &mdash; presence absence data; discrete values, 0 and 1, models probability of success
+
+- **Gamma** &mdash; concentrations; non-negative (strictly positive with log link) real values, variance increases with mean, many zero values and some high values
+]
+
+---
+
+# Old notation
+
+Wrote linear model as
+
+$$y_i = \alpha + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots + \beta_j x_{ij} + \varepsilon_i$$
+
+And assumed properties of residuals
+
+$$ \varepsilon_i \sim \text{Normal}(0, \sigma^2) $$
+
+This doesn't work out the same for GLMs &mdash; we don't (usually) have a residual term $\varepsilon$ in the linear predictor
+
+Sampling variation comes from the response distribution
+
+---
+
+# New notation
+
+Rewrite linear model as
+
+\begin{align*}
+y_i & \sim \text{Normal}(\mu_i, \sigma^2) \\
+\eta_i & = \alpha + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots + \beta_j x_{ij}
+\end{align*}
+
+This now matches the general form for the GLM
+
+\begin{align*}
+y_i & \sim \text{EF}(\mu_i, \boldsymbol{\theta}) \\
+g(\mu_i) & = \alpha + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots + \beta_j x_{ij}
+\end{align*}
+
+---
+
+# New notation
+
+```{r dist-fig-1, fig.align = "center", out.width = "80%", echo = FALSE}
+knitr::include_graphics("resources/fig-gaussian-lm-descriptive-figure-1.png")
+```
+
+---
+
+# New notation
+
+Binomial GLM
+
+\begin{align*}
+y_i & \sim \text{Binomial}(n, p_i) \\
+\text{logit}(p_i) & = \alpha + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots + \beta_j x_{ij}
+\end{align*}
+
+Poisson GLM
+
+\begin{align*}
+y_i & \sim \text{Poisson}(\lambda_i) \\
+\log(\lambda_i) & = \alpha + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots + \beta_j x_{ij}
+\end{align*}
+
+---
+
+# New notation
+
+```{r dist-fig-2, fig.align = "center", out.width = "80%", echo = FALSE}
+knitr::include_graphics("resources/fig-poisson-lm-descriptive-figure-1.png")
+```
+
+---
+
+# New notation
+
+```{r dist-fig-3, fig.align = "center", out.width = "80%", echo = FALSE}
+knitr::include_graphics("resources/fig-other-dist-descr-1.png")
+```
+
+---
+
+# Why?
+
+Is this really necessary? Is it just some mathematical sleight of hand?
+
+Yes, it is necessary (except for a couple of special cases Gaussian, Binomial)
+
+No, it is not just sleight of hand
+
+> Focus on the distribution of each observation of $y_i$
+
+What values can each observation take?
 
 ---
 class: inverse middle center huge-subsection
@@ -80,7 +412,7 @@ URL <- "https://bit.ly/hadcrutv4"
 # data are year, median of ensemble runs, certain quantiles in remaining cols
 # take only cols 1 and 2
 gtemp <- read_table(URL, col_types = 'nnnnnnnnnnnn', col_names = FALSE) |>
-  select(num_range('X', 1:2)) %>% setNames(nm = c('Year', 'Temperature'))
+  select(num_range('X', 1:2)) |> setNames(nm = c('Year', 'Temperature'))
 
 ## Plot
 gtemp_plt <- ggplot(gtemp, aes(x = Year, y = Temperature)) +
@@ -171,8 +503,11 @@ class: inverse middle center subsection
 library("readr")
 library("dplyr")
 URL <-  "https://bit.ly/hadcrutv4"
-gtemp <- read_table(URL, col_types = 'nnnnnnnnnnnn', col_names = FALSE) |>
-    select(num_range('X', 1:2)) %>% setNames(nm = c('Year', 'Temperature'))
+gtemp <- read_table(
+  URL, col_types = "nnnnnnnnnnnn", col_names = FALSE
+) |>
+  select(num_range("X", 1:2)) |>
+  setNames(nm = c("Year", "Temperature"))
 ```
 
 [File format](https://www.metoffice.gov.uk/hadobs/hadcrut4/data/current/series_format.html)
@@ -189,9 +524,9 @@ gtemp
 
 # Fitting a GAM
 
-```{r hadcrutemp-fitted-gam, echo = TRUE, results = 'hide'}
+```{r hadcrutemp-fitted-gam, echo = TRUE, results = "hide"}
 library("mgcv")
-m <- gam(Temperature ~ s(Year), data = gtemp, method = 'REML')
+m <- gam(Temperature ~ s(Year), data = gtemp, method = "REML")
 summary(m)
 ```
 
@@ -209,8 +544,8 @@ N <- 300
 newd <- as_tibble(with(gtemp, data.frame(Year = seq(min(Year), max(Year), length = N))))
 pred <- as_tibble(as.data.frame(predict(m, newdata = newd, se.fit = TRUE,
                                         unconditional = TRUE)))
-pred <- bind_cols(newd, pred) %>%
-    mutate(upr = fit + 2 * se.fit, lwr = fit - 2*se.fit)
+pred <- bind_cols(newd, pred) |>
+    mutate(upr = fit + 2 * se.fit, lwr = fit - 2 * se.fit)
 
 ggplot(gtemp, aes(x = Year, y = Temperature)) +
     geom_point() +
@@ -219,7 +554,7 @@ ggplot(gtemp, aes(x = Year, y = Temperature)) +
                 fill = "#fdb338") +
     geom_line(data = pred,
               mapping = aes(y = fit, x = Year), inherit.aes = FALSE, size = 1, colour = "#025196") +
-    labs(x = 'Year', y = expression(Temeprature ~ degree*C))
+    labs(x = "Year", y = expression(Temeprature ~ degree*C))
 ```
 
 ---
@@ -289,10 +624,12 @@ background-size: contain
 # Fitting a GAM in R
 
 ```r
-model <- gam(y ~ s(x1) + s(x2) + te(x3, x4), # formuala describing model
-             data = my_data_frame,           # your data
-             method = 'REML',                # or 'ML'
-             family = gaussian)              # or something more exotic
+model <- gam(
+  y ~ s(x1) + s(x2) + te(x3, x4), # formula describing model
+  data = my_data_frame,           # your data
+  method = "REML",                # or "ML"
+  family = gaussian               # or something more exotic
+)
 ```
 
 `s()` terms are smooths of one or more variables
@@ -310,20 +647,20 @@ gam(Temperature ~ s(Year, k = 10), data = gtemp, method = "REML")
 
 ```{r smooth-fun-animation, results = FALSE, echo = FALSE}
 f <- function(x) {
-x^11 * (10 * (1 - x))^6 + ((10 * (10 * x)^3) * (1 - x)^10)
+  x^11 * (10 * (1 - x))^6 + ((10 * (10 * x)^3) * (1 - x)^10)
 }
 
 draw_beta <- function(n, k, mu = 1, sigma = 1) {
-rmvn(n = n, mu = rep(mu, k), sigma = diag(rep(sigma, k)))
+  rmvn(n = n, mu = rep(mu, k), sigma = diag(rep(sigma, k)))
 }
 
 weight_basis <- function(bf, x, n = 1, k, ...) {
     beta <- draw_beta(n = n, k = k, ...)
-    out <- sweep(bf, 2L, beta, '*')
-    colnames(out) <- paste0('f', seq_along(beta))
+    out <- sweep(bf, 2L, beta, "*")
+    colnames(out) <- paste0("f", seq_along(beta))
     out <- as_tibble(out)
     out <- add_column(out, x = x)
-    out <- pivot_longer(out, -x, names_to = 'bf', values_to = 'y')
+    out <- pivot_longer(out, -x, names_to = "bf", values_to = "y")
     out
 }
 
@@ -364,21 +701,21 @@ k <- 10
 knots <- with(data, list(x = seq(min(x), max(x), length = k)))
 sm <- smoothCon(s(x, k = k, bs = "cr"), data = data, knots = knots)[[1]]$X
 colnames(sm) <- levs <- paste0("f", seq_len(k))
-basis <- pivot_longer(cbind(sm, data), -(x:yobs), names_to = 'bf')
+basis <- pivot_longer(cbind(sm, data), -(x:yobs), names_to = "bf")
 basis
 
 set.seed(2)
 bfuns <- random_bases(sm, data$x, draws = 20, k = k)
 
-smooth <- bfuns %>%
-    group_by(draw, x) %>%
-    summarise(spline = sum(y), .groups = "drop") %>%
+smooth <- bfuns |>
+    group_by(draw, x) |>
+    summarise(spline = sum(y), .groups = "drop") |>
     ungroup()
 
 p1 <- ggplot(smooth) +
     geom_line(data = smooth, aes(x = x, y = spline), lwd = 1.5) +
-    labs(y = 'f(x)', x = 'x') +
-    theme_minimal(base_size = 16, base_family = 'Fira Sans')
+    labs(y = "f(x)", x = "x") +
+    theme_minimal(base_size = 16, base_family = "Fira Sans")
 
 smooth_funs <- animate(
   p1 + transition_states(draw, transition_length = 4, state_length = 2) +
@@ -433,8 +770,8 @@ ggplot(basis,
        aes(x = x, y = value, colour = bf)) +
     geom_line(lwd = 2, alpha = 0.5) +
     guides(colour = "none") +
-    labs(x = 'x', y = 'b(x)') +
-    theme_minimal(base_size = 20, base_family = 'Fira Sans')
+    labs(x = "x", y = "b(x)") +
+    theme_minimal(base_size = 20, base_family = "Fira Sans")
 ```
 
 ???
@@ -453,12 +790,12 @@ We weight each basis function to get a spline. Here all the basisi functions hav
 bfun_plt <- plot(bfuns) +
     geom_line(data = smooth, aes(x = x, y = spline),
               inherit.aes = FALSE, lwd = 1.5) +
-    labs(x = 'x', y = 'f(x)') +
-    theme_minimal(base_size = 14, base_family = 'Fira Sans')
+    labs(x = "x", y = "f(x)") +
+    theme_minimal(base_size = 14, base_family = "Fira Sans")
 
 bfun_anim <- animate(
     bfun_plt + transition_states(draw, transition_length = 4, state_length = 2) + 
-    ease_aes('cubic-in-out'),
+    ease_aes("cubic-in-out"),
     nframes = 200, height = anim_height, width = anim_width, res = anim_res,
     dev = anim_dev, units = "px"
 )
@@ -480,10 +817,10 @@ Each of the splines I showed you earlier are all generated from the same basis f
 
 ```{r example-data-figure, fig.height=6, fig.width = 1.777777*6, echo = FALSE}
 data_plt <- ggplot(data, aes(x = x, y = ycent)) +
-    geom_line(col = 'goldenrod', lwd = 2) +
-    geom_point(aes(y = yobs), alpha = 0.2, size = 3) +
-    labs(x = 'x', y = 'f(x)') +
-    theme_minimal(base_size = 20, base_family = 'Fira Sans')
+  geom_line(col = "goldenrod", lwd = 2) +
+  geom_point(aes(y = yobs), alpha = 0.2, size = 3) +
+  labs(x = "x", y = "f(x)") +
+  theme_minimal(base_size = 20, base_family = "Fira Sans")
 data_plt
 ```
 
@@ -503,28 +840,38 @@ beta <- coef(lm(ycent ~ sm2 - 1, data = data))
 wtbasis <- sweep(sm2, 2L, beta, FUN = "*")
 colnames(wtbasis) <- colnames(sm2) <- paste0("F", seq_len(k))
 ## create stacked unweighted and weighted basis
-basis <- as_tibble(rbind(sm2, wtbasis)) %>%
-    add_column(x = rep(data$x, times = 2),
-               type = rep(c('unweighted', 'weighted'), each = nrow(sm2)),
-               .before = 1L)
-##data <- cbind(data, fitted = rowSums(scbasis))
+basis <- as_tibble(rbind(sm2, wtbasis)) |>
+  add_column(
+    x = rep(data$x, times = 2),
+    type = rep(c("unweighted", "weighted"), each = nrow(sm2)),
+    .before = 1L
+  )
+
 wtbasis <- as_tibble(rbind(sm2, wtbasis)) %>%
-    add_column(x      = rep(data$x, times = 2),
-               fitted = rowSums(.),
-               type   = rep(c('unweighted', 'weighted'), each = nrow(sm2))) %>%
-    pivot_longer(-(x:type), names_to = 'bf')
-basis <- pivot_longer(basis, -(x:type), names_to = 'bf')
+  add_column(
+    x = rep(data$x, times = 2),
+    fitted = rowSums(.),
+    type   = rep(c("unweighted", "weighted"), each = nrow(sm2))
+  ) |>
+  pivot_longer(-(x:type), names_to = "bf")
+
+basis <- pivot_longer(basis, -(x:type), names_to = "bf")
 
 p3 <- ggplot(data, aes(x = x, y = ycent)) +
-    geom_point(aes(y = yobs), alpha = 0.2) +
-    geom_line(data = basis,
-              mapping = aes(x = x, y = value, colour = bf),
-              lwd = 1, alpha = 0.5) +
-    geom_line(data = wtbasis,
-              mapping = aes(x = x, y = fitted), lwd = 1, colour = 'black', alpha = 0.75) +
-    guides(colour = FALSE) +
-    labs(y = 'f(x)', x = 'x') +
-    theme_minimal(base_size = 16, base_family = 'Fira Sans')
+  geom_point(aes(y = yobs), alpha = 0.2) +
+  geom_line(
+    data = basis,
+    mapping = aes(x = x, y = value, colour = bf),
+    lwd = 1, alpha = 0.5
+  ) +
+  geom_line(
+    data = wtbasis,
+    mapping = aes(x = x, y = fitted),
+    lwd = 1, colour = "black", alpha = 0.75
+  ) +
+  guides(colour = FALSE) +
+  labs(y = "f(x)", x = "x") +
+  theme_minimal(base_size = 16, base_family = "Fira Sans")
 
 crs_fit <- animate(p3 +
     transition_states(type, transition_length = 4, state_length = 2) +
@@ -629,14 +976,14 @@ Two ways to think about how to optimize $\lambda$:
 ]
 
 .pull-right[
-Many methods: AIC, Mallow's $C_p$, GCV, ML, REML
+Many methods: AIC, Mallow's $C_p$, GCV, ML, REML, NCV
 
 * **Practically**, use **REML**, because of numerical stability
 * Hence `gam(..., method='REML')`
 ]
 
 .center[
-![Animation of derivatives](./resources/remlgcv.png)
+![REML and GCV smoothness selection](./resources/remlgcv.png)
 ]
 
 ---
@@ -649,7 +996,7 @@ This is _maximum wigglyness_, can be thought of as number of small functions tha
 
 Once smoothing is applied, curves have fewer **effective degrees of freedom (EDF)**
 
-EDF < $k$
+$\text{EDF} < k$
 
 ---
 
@@ -679,6 +1026,22 @@ In **mgcv**, default $k$ values are arbitrary &mdash; after choosing the model t
 4. Need to make sure your smooths are **wiggly enough**
 
 ---
+
+class: middle center inverse subsection
+
+# Your turn
+
+---
+
+# Exercise
+
+Complete the exercise at
+
+<https://gavinsimpson.github.io/au-viborg-gam-course/day-1/milk-yield.html>
+
+You can also download the [`milk-yield.qmd`](https://github.com/gavinsimpson/au-viborg-gam-course/raw/refs/heads/main/day-1/milk-yield.qmd) and open it in RStudio
+
+---
 class: middle center inverse subsection
 
 # Example
@@ -695,7 +1058,7 @@ library("here"); library("readr"); library("dplyr")
 larks <-  read_csv(here("data", "larks.csv"),
                    col_types = "ccdddd")
 
-larks <- larks %>%
+larks <- larks |>
   mutate(crestlark = factor(crestlark),
          linnet = factor(linnet),
          e = x / 1000,
@@ -755,15 +1118,15 @@ Alternatively we can aggregate data at the `QUADRICULA` level & fit a binomial c
 
 .smaller[
 ```{r munge-larks, echo = TRUE}
-larks2 <- larks %>%
+larks2 <- larks |>
   mutate(crestlark = as.numeric(as.character(crestlark)),  # to numeric
          linnet = as.numeric(as.character(linnet)),
          tet_n = rep(1, nrow(larks)),                      # counter for how many grid cells (tetrads) we sum
          N = rep(1, nrow(larks)),                          # number of observations, 1 per row currently
-         N = if_else(is.na(crestlark), NA_real_, N)) %>%   # set N to NA if observation taken
-  group_by(QUADRICULA) %>%                                 # group by the larger grid square
+         N = if_else(is.na(crestlark), NA_real_, N)) |>    # set N to NA if observation taken
+  group_by(QUADRICULA) |>                                  # group by the larger grid square
   summarise(across(c(N, crestlark, linnet, tet_n, e, n),
-                   ~ sum(., na.rm = TRUE))) %>%            # sum all needed variables
+                   ~ sum(., na.rm = TRUE))) |>             # sum all needed variables
   mutate(e = e / tet_n, n = n / tet_n)                     # rescale to get avg E,N coords for QUADRICULA
 
 ## fit binomial GAM
@@ -1373,6 +1736,113 @@ p2 <- draw(S)
 p1 + p2 + plot_layout(ncol = 2)
 ```
 ]
+
+---
+
+# Basis functions for `s(x, z)`
+
+Code for this is in `01-materials/test.R`
+
+```{r tprs-2d-basis-setup, echo = FALSE}
+test_fun2 <- function(n = 50, sx = 0.3, sz = 0.4, scale = 0.1,
+                     seed = NULL) {
+    require("tibble")
+    if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+        runif(1)
+    }
+    if (is.null(seed)) {
+        RNGstate <- get(".Random.seed", envir = .GlobalEnv)
+    }
+    else {
+        R.seed <- get(".Random.seed", envir = .GlobalEnv)
+        set.seed(seed)
+        RNGstate <- structure(seed, kind = as.list(RNGkind()))
+        on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
+    }
+    xz <- expand.grid(x = seq(0,1, length = n), z = seq(0,1, length=n))
+    #take <- seq_len(n)
+    x <- xz[["x"]]
+    z <- xz[["z"]]
+    f <- 1.2 * exp(-(x - 0.2)^2 / sx^2 - (z - 0.3)^2 / sz^2) +
+      08. * exp(-(x - 0.7)^2 / sx^2 - (z - 0.8)^2 / sz^2)
+    tibble(y = f + rnorm(n) * scale, x = x, z = z)
+}
+```
+
+.center[
+```{r tprs-2d-basis, echo = FALSE, out.width = "90%"}
+test_df2 <- test_fun2(seed = 42)
+bfun <- basis(s(x, z), data = test_df2)
+
+bfun |>
+  draw()
+```
+]
+
+---
+
+# Basis functions for `s(x, z)`
+
+Panels 1&ndash;15 are the basis functions
+
+.center[
+```{r include-simons-tprs-2d-image, out.width = "45%", echo = FALSE}
+knitr::include_graphics("resources/wood-2ed-fig-5-12-2-d-tprs-basis-funs.png")
+```
+]
+
+.small[
+Source: Wood SN (2017)
+]
+
+---
+
+# Beyond linearity
+
+How do we test if we need something more than a linear effect?
+
+--
+
+Include a linear parametric term but remove it from the null space of the spline
+
+`m = c(2, 0)` implies 2<sup>nd</sup> derivative penalty but zero null space
+
+Null space is the set of functions in the basis that the penalty doesn't affect
+
+---
+
+# Beyond linearity
+
+.row[
+
+.col-6[
+
+```{r beyond-linearity}
+n <- 100
+set.seed(2)
+df <- tibble(x = runif(n),
+             y = x + x^2 * 0.2 + rnorm(n) * 0.1)
+
+model <- gam(y ~ x + s(x, m = c(2, 0)),
+             data = df, method = "REML")
+```
+]
+.col-6[
+.small[
+```{r beyond-linearity-summary}
+summary(model)
+```
+]
+]
+]
+
+---
+
+# Beyond linearity
+
+```{r beyond-linearity-plot, out.width = "95%", fig.align = "center"}
+draw(model, parametric = TRUE)
+```
 
 ---
 class: inverse middle center big-subsection

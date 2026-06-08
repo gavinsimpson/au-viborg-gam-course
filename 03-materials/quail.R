@@ -29,68 +29,83 @@ ggplot(q_growth, aes(day, mass, color = group)) +
        y = "Body mass (g)",
        color = "Treatment",
        tag = "A") +
-  scale_color_discrete(labels = str2expression,
-    limits = c("CO", "T[3]", "T[4]", "T[3]~T[4]")) +
+  scale_color_discrete(
+    labels = str2expression,
+    limits = c("CO", "T[3]", "T[4]", "T[3]~T[4]")
+  ) +
   theme(legend.text.align = 0)
 
 ggplot(q_growth, aes(day, mass, color = group)) +
   stat_summary(fun = mean, geom = "line") +
-  stat_summary(fun.data = mean_se, geom = "pointrange", fatten = 2) +
+  stat_summary(fun.data = mean_se, geom = "pointrange") +
   facet_wrap(~sex) +
   labs(x = "Days since hatching",
        y = "Body mass (g)",
        color = "Treatment",
        tag = "B") +
-  scale_color_discrete(labels = str2expression,
-    limits = c("CO", "T[3]", "T[4]", "T[3]~T[4]")) +
+  scale_color_discrete(
+    labels = str2expression,
+    limits = c("CO", "T[3]", "T[4]", "T[3]~T[4]")
+  ) +
   theme(legend.text.align = 0)
 
 # model growth curves
 ctrl <- gam.control(nthreads = 4)
 
-m1 <- bam(mass ~ group + sex +
-  s(day, by = sex) +
-  s(day, eggID, bs = "fs") +
-  s(motherID, bs = "re"),
-data = q_growth,
-family = Gamma(link = "log"),
-method = "fREML",
-control = ctrl,
-discrete = TRUE)
+m1 <- bam(
+  mass ~ group + sex +
+    s(day, by = sex) +
+    s(day, eggID, bs = "fs") +
+    s(motherID, bs = "re"),
+  data = q_growth,
+  family = Gamma(link = "log"),
+  method = "fREML",
+  control = ctrl,
+  discrete = TRUE
+)
 
 draw(m1, rug = FALSE)
 appraise(m1, method = "simulate")
 
-q_growth <- q_growth %>%
-  mutate(group_o = ordered(group),
-         sex_o = ordered(sex))
+q_growth <- q_growth |>
+  mutate(
+    group_o = ordered(group),
+    sex_o = ordered(sex)
+  )
 
-m2 <- bam(mass ~ group_o + sex_o +
-  s(day, k = 15) +
-  s(day, by = group_o) +
-  s(day, by = sex_o) +
-  s(day, eggID, bs = "fs", k = 6) +
-  s(motherID, bs = "re"),
-data = q_growth,
-family = Gamma(link = "log"),
-method = "fREML",
-control = ctrl,
-discrete = TRUE)
+contrasts(q_growth$group_o) <- "contr.treatment"
+contrasts(q_growth$sex_o)   <- "contr.treatment"
+
+m2 <- bam(
+  mass ~ group_o + sex_o +
+    s(day, k = 15) +
+    s(day, by = group_o) +
+    s(day, by = sex_o) +
+    s(day, eggID, bs = "fs", k = 6) +
+    s(motherID, bs = "re"),
+  data = q_growth,
+  family = Gamma(link = "log"),
+  method = "fREML",
+  control = ctrl,
+  discrete = TRUE
+)
 
 draw(m2, rug = FALSE)
 appraise(m2, method = "simulate")
 
-m3 <- bam(mass ~ group_o + sex_o +
-  s(day, k = 15) +
-  s(day, by = group_o) +
-  s(day, by = sex_o) +
-  s(eggID, bs = "re") +
-  s(motherID, bs = "re"),
-data = q_growth,
-family = Gamma(link = "log"),
-method = "fREML",
-control = ctrl,
-discrete = TRUE)
+m3 <- bam(
+  mass ~ group_o + sex_o +
+    s(day, k = 15) +
+    s(day, by = group_o) +
+    s(day, by = sex_o) +
+    s(eggID, bs = "re") +
+    s(motherID, bs = "re"),
+  data = q_growth,
+  family = Gamma(link = "log"),
+  method = "fREML",
+  control = ctrl,
+  discrete = TRUE
+)
 
 draw(m3, rug = FALSE)
 appraise(m3, method = "simulate")
@@ -133,6 +148,9 @@ appraise(m5, method = "simulate")
 sms <- smooths(m4)
 sms
 
-conditional_values(m4, condition = c("day", "group", "sex"),
-  exclude = sms[4:5]) |>
+m4 |>
+  conditional_values(
+    condition = c("day", "group", "sex"),
+    exclude = sms[4:5]
+  ) |>
   draw()

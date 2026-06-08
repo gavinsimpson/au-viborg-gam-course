@@ -3,7 +3,7 @@ title: "Generalized Additive Models"
 subtitle: "a data-driven approach to estimating regression models"
 institute: "Department of Animal & Veterinary Sciences · Aarhus University"
 author: "Gavin Simpson"
-date: "0930&ndash;1600 CET Wednesday 11th December, 2024"
+date: 0900&ndash;1500 CET Wednesday 10th June, 2026"
 output:
   xaringan::moon_reader:
     css: ['default', 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css', 'slides.css']
@@ -54,110 +54,15 @@ anim_res <- 200
 
 ---
 
-# Basis functions for `s(x, z)`
+# Today's topics
 
-Code for this is in `01-materials/test.R`
+* Derivatives of smooths
 
-```{r tprs-2d-basis-setup, echo = FALSE}
-test_fun2 <- function(n = 50, sx = 0.3, sz = 0.4, scale = 0.1,
-                     seed = NULL) {
-    require("tibble")
-    if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
-        runif(1)
-    }
-    if (is.null(seed)) {
-        RNGstate <- get(".Random.seed", envir = .GlobalEnv)
-    }
-    else {
-        R.seed <- get(".Random.seed", envir = .GlobalEnv)
-        set.seed(seed)
-        RNGstate <- structure(seed, kind = as.list(RNGkind()))
-        on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
-    }
-    xz <- expand.grid(x = seq(0,1, length = n), z = seq(0,1, length=n))
-    #take <- seq_len(n)
-    x <- xz[["x"]]
-    z <- xz[["z"]]
-    f <- 1.2 * exp(-(x - 0.2)^2 / sx^2 - (z - 0.3)^2 / sz^2) +
-      08. * exp(-(x - 0.7)^2 / sx^2 - (z - 0.8)^2 / sz^2)
-    tibble(y = f + rnorm(n) * scale, x = x, z = z)
-}
-```
+* Model checking, selection, and visualisation.
 
-.center[
-```{r tprs-2d-basis, echo = FALSE, out.width = "90%"}
-test_df2 <- test_fun2(seed = 42)
-bfun <- basis(s(x, z), data = test_df2)
+* How do we do inference with GAMs?
 
-bfun |>
-  draw()
-```
-]
-
----
-
-# Basis functions for `s(x, z)`
-
-Panels 1&ndash;15 are the basis functions
-
-.center[
-```{r include-simons-tprs-2d-image, out.width = "45%", echo = FALSE}
-knitr::include_graphics("resources/wood-2ed-fig-5-12-2-d-tprs-basis-funs.png")
-```
-]
-
-.small[
-Source: Wood SN (2017)
-]
-
----
-
-# Beyond linearity
-
-How do we test if we need something more than a linear effect?
-
---
-
-Include a linear parametric term but remove it from the null space of the spline
-
-`m = c(2, 0)` implies 2<sup>nd</sup> derivative penalty but zero null space
-
-Null space is the set of functions in the basis that the penalty doesn't affect
-
----
-
-# Beyond linearity
-
-.row[
-
-.col-6[
-
-```{r beyond-linearity}
-n <- 100
-set.seed(2)
-df <- tibble(x = runif(n),
-             y = x + x^2 * 0.2 + rnorm(n) * 0.1)
-
-model <- gam(y ~ x + s(x, m = c(2, 0)),
-             data = df, method = "REML")
-```
-]
-.col-6[
-.small[
-```{r beyond-linearity-summary}
-summary(model)
-```
-]
-]
-]
-
----
-
-# Beyond linearity
-
-```{r beyond-linearity-plot, out.width = "95%", fig.align = "center"}
-draw(model, parametric = TRUE)
-```
+* Go beyond simple GAMs to include smooth interactions and models with multiples smooths.
 
 ---
 
@@ -275,17 +180,6 @@ Significant change is where the simultaneous interval on derivative *excludes* 0
 ```{r change-indicators-3, fig.align = "center", out.width = "80%", echo = FALSE}
 fd_plt
 ```
-
----
-
-# Today's topics
-
-* Model checking, selection, and visualisation.
-
-* How do we do inference with GAMs?
-
-* Go beyond simple GAMs to include smooth interactions and models with multiples smooths.
-
 
 ---
 

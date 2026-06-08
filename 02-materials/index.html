@@ -26,7 +26,7 @@ class: inverse, middle, left, my-title-slide, title-slide
 ### Department of Animal &amp; Veterinary Sciences · Aarhus University
 ]
 .date[
-### 0930–1600 CET Wednesday 11th December, 2024
+### 0900–1500 CET Wednesday 10th June, 2026”
 ]
 
 ---
@@ -39,108 +39,15 @@ class: inverse middle center big-subsection
 
 ---
 
-# Basis functions for `s(x, z)`
+# Today's topics
 
-Code for this is in `01-materials/test.R`
+* Derivatives of smooths
 
+* Model checking, selection, and visualisation.
 
+* How do we do inference with GAMs?
 
-.center[
-&lt;img src="index_files/figure-html/tprs-2d-basis-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
-]
-
----
-
-# Basis functions for `s(x, z)`
-
-Panels 1&amp;ndash;15 are the basis functions
-
-.center[
-&lt;img src="resources/wood-2ed-fig-5-12-2-d-tprs-basis-funs.png" width="45%" style="display: block; margin: auto;" /&gt;
-]
-
-.small[
-Source: Wood SN (2017)
-]
-
----
-
-# Beyond linearity
-
-How do we test if we need something more than a linear effect?
-
---
-
-Include a linear parametric term but remove it from the null space of the spline
-
-`m = c(2, 0)` implies 2&lt;sup&gt;nd&lt;/sup&gt; derivative penalty but zero null space
-
-Null space is the set of functions in the basis that the penalty doesn't affect
-
----
-
-# Beyond linearity
-
-.row[
-
-.col-6[
-
-
-``` r
-n &lt;- 100
-set.seed(2)
-df &lt;- tibble(x = runif(n),
-             y = x + x^2 * 0.2 + rnorm(n) * 0.1)
-
-model &lt;- gam(y ~ x + s(x, m = c(2, 0)),
-             data = df, method = "REML")
-```
-]
-.col-6[
-.small[
-
-``` r
-summary(model)
-```
-
-```
-## 
-## Family: gaussian 
-## Link function: identity 
-## 
-## Formula:
-## y ~ x + s(x, m = c(2, 0))
-## 
-## Parametric coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept) -0.02133    0.05315  -0.401    0.689    
-## x            1.18249    0.10564  11.193   &lt;2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Approximate significance of smooth terms:
-##         edf Ref.df     F p-value  
-## s(x) 0.9334      8 0.304   0.076 .
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## R-sq.(adj) =   0.91   Deviance explained = 91.1%
-## -REML = -70.567  Scale est. = 0.012767  n = 100
-```
-]
-]
-]
-
----
-
-# Beyond linearity
-
-
-``` r
-draw(model, parametric = TRUE)
-```
-
-&lt;img src="index_files/figure-html/beyond-linearity-plot-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+* Go beyond simple GAMs to include smooth interactions and models with multiples smooths.
 
 ---
 
@@ -187,7 +94,7 @@ sm_plt &lt;- draw(m, residuals = TRUE)
 sm_plt
 ```
 
-&lt;img src="index_files/figure-html/draw-mcycle-1.svg" width="70%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-mcycle-1.svg" alt="" width="70%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -226,7 +133,7 @@ fd_plt &lt;- draw(fd) + labs(title = "First derivative s(times)")
 sm_plt + fd_plt + plot_layout(ncol = 2)
 ```
 
-&lt;img src="index_files/figure-html/draw-derivatives-times-smooth-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-derivatives-times-smooth-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -239,7 +146,7 @@ fd2_plt &lt;- draw(fd2)
 fd_plt + fd2_plt + plot_layout(ncol = 2)
 ```
 
-&lt;img src="index_files/figure-html/draw-derivatives-times-smooth-2-1.svg" width="80%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-derivatives-times-smooth-2-1.svg" alt="" width="80%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -253,7 +160,7 @@ fd2_plt &lt;- draw(fd2) + labs(title = "Second derivative s(times)")
 fd_plt + fd2_plt + plot_layout(ncol = 2)
 ```
 
-&lt;img src="index_files/figure-html/draw-derivatives-times-smooth-2-right-1.svg" width="80%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-derivatives-times-smooth-2-right-1.svg" alt="" width="80%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -269,7 +176,7 @@ m |&gt;                                               # take the model, and
   draw()                                           # plot
 ```
 
-&lt;img src="index_files/figure-html/change-indicators-1.svg" width="80%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/change-indicators-1.svg" alt="" width="80%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -283,7 +190,7 @@ m |&gt;                                               # take the model, and
   draw()                                           # plot
 ```
 
-&lt;img src="index_files/figure-html/change-indicators-2-1.svg" width="80%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/change-indicators-2-1.svg" alt="" width="80%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -291,18 +198,7 @@ m |&gt;                                               # take the model, and
 
 Significant change is where the simultaneous interval on derivative *excludes* 0
 
-&lt;img src="index_files/figure-html/change-indicators-3-1.svg" width="80%" style="display: block; margin: auto;" /&gt;
-
----
-
-# Today's topics
-
-* Model checking, selection, and visualisation.
-
-* How do we do inference with GAMs?
-
-* Go beyond simple GAMs to include smooth interactions and models with multiples smooths.
-
+&lt;img src="index_files/figure-html/change-indicators-3-1.svg" alt="" width="80%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -326,7 +222,7 @@ Two ways to fit smooth interactions
 
 
 
-&lt;img src="index_files/figure-html/draw-tprs-vs-tensor-product-truth-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-tprs-vs-tensor-product-truth-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -368,7 +264,7 @@ m_te   &lt;- gam(y ~ te(x, z), data = df, method = "REML")
 truth_plt + (draw(m_tprs) + coord_cartesian()) + draw(m_te) + plot_layout(ncol = 3)
 ```
 
-&lt;img src="index_files/figure-html/draw-tprs-vs-tensor-product-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-tprs-vs-tensor-product-1.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -383,7 +279,7 @@ vis.gam(m_te)
 layout(1)
 ```
 
-&lt;img src="index_files/figure-html/plot-tprs-vs-tensor-product-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/plot-tprs-vs-tensor-product-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -406,7 +302,7 @@ There are multiple ways to build tensor products in *mgcv*
 # Tensor product smooths
 
 .center[
-&lt;img src="resources/wood-gams-2ed-fig-5-17-tensor-product.svg" width="50%" style="display: block; margin: auto;" /&gt;
+&lt;img src="resources/wood-gams-2ed-fig-5-17-tensor-product.svg" alt="" width="50%" style="display: block; margin: auto;" /&gt;
 ]
 
 ---
@@ -483,7 +379,7 @@ So you have a GAM:
 
 How accurate your predictions depends on how good the model is
 
-&lt;img src="index_files/figure-html/misspecify-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/misspecify-1.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 
 ---
 class: inverse center middle subsection
@@ -515,7 +411,7 @@ y_binom &lt;- rbinom(n,1,prob = exp(y_val)/(1+exp(y_val)))
 
 # Simulated data
 
-&lt;img src="index_files/figure-html/sims_plot-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/sims_plot-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 class: inverse middle center subsection
@@ -616,7 +512,7 @@ gam.check(norm_model_3)
 ## 
 ## Method: REML   Optimizer: outer newton
 ## full convergence after 8 iterations.
-## Gradient range [-1.136212e-08,6.883383e-13]
+## Gradient range [-1.136181e-08,6.901146e-13]
 ## (score 334.2084 &amp; scale 0.2485446).
 ## Hessian positive definite, eigenvalue range [2.812271,198.6868].
 ## Model rank =  23 / 23 
@@ -633,7 +529,7 @@ gam.check(norm_model_3)
 
 # Checking basis size
 
-&lt;img src="index_files/figure-html/gam_check_norm4-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/gam_check_norm4-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -699,7 +595,7 @@ edf(res_model)
 draw(res_model)
 ```
 
-&lt;img src="index_files/figure-html/alt-basis-dim-check-3-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/alt-basis-dim-check-3-1.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 
 ---
 class: inverse middle center subsection
@@ -737,7 +633,7 @@ norm_model &lt;- gam(y_norm ~ s(x1, k=12) + s(x2, k=12), method="REML")
 gam.check(norm_model, rep = 500)
 ```
 
-&lt;img src="index_files/figure-html/gam_check_plots1-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/gam_check_plots1-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -749,7 +645,7 @@ pois_model &lt;- gam(y_negbinom ~ s(x1, k=12) + s(x2, k=12), family=poisson, met
 gam.check(pois_model, rep = 500)
 ```
 
-&lt;img src="index_files/figure-html/gam_check_plots2-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/gam_check_plots2-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -761,7 +657,7 @@ negbin_model &lt;- gam(y_negbinom ~ s(x1, k=12) + s(x2, k=12), family = nb, meth
 gam.check(negbin_model, rep = 500)
 ```
 
-&lt;img src="index_files/figure-html/gam_check_plots3-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/gam_check_plots3-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -772,7 +668,7 @@ gam.check(negbin_model, rep = 500)
 appraise(negbin_model, method = 'simulate')
 ```
 
-&lt;img src="index_files/figure-html/appraise-gam-check-example-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/appraise-gam-check-example-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -800,7 +696,7 @@ These residuals are then used in model diagnostics
 
 # DHARMa &amp;mdash; alternate diagnostics
 
-&lt;img src="resources/dharma-randomised-residuals.png" width="50%" style="display: block; margin: auto;" /&gt;
+&lt;img src="resources/dharma-randomised-residuals.png" alt="" width="50%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -873,7 +769,7 @@ resids &lt;- simulateResiduals(fittedModel = pois_model, plot = FALSE)
 plot(resids)
 ```
 
-&lt;img src="index_files/figure-html/dharma-plots-possion-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/dharma-plots-possion-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -885,7 +781,7 @@ resids &lt;- simulateResiduals(fittedModel = negbin_model, plot = FALSE)
 plot(resids)
 ```
 
-&lt;img src="index_files/figure-html/dharma-plots-negbin-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/dharma-plots-negbin-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -992,7 +888,7 @@ b &lt;- gam(y ~ s(x0) + s(x1) + s(x2) + s(x3) +
 
 # Example
 
-&lt;img src="index_files/figure-html/shrinkage-example-truth-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/shrinkage-example-truth-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1043,7 +939,7 @@ summary(b)
 draw(b, scales = 'fixed')
 ```
 
-&lt;img src="index_files/figure-html/shrinkage-example-plot-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/shrinkage-example-plot-1.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 
 ---
 class: inverse middle center subsection
@@ -1068,7 +964,7 @@ Cross Validated question
 .col-6[
 
 .center[
-&lt;img src="resources/cross-validated.png" width="1223" style="display: block; margin: auto;" /&gt;
+&lt;img src="resources/cross-validated.png" alt="" style="display: block; margin: auto;" /&gt;
 ]
 
 ]
@@ -1241,7 +1137,7 @@ AIC(m, m.sub)
 
 ```
 ##             df      AIC
-## m     484.7684 58544.03
+## m     484.8325 58547.15
 ## m.sub 238.2766 59193.50
 ```
 ---
@@ -1270,8 +1166,8 @@ anova(m, m.sub, test = "F")
 ##     k = 30) + s(LONGITUDE, LATITUDE, k = 100, bs = "ds", m = c(1, 
 ##     0.5)) + ti(DoY, YEAR, bs = c("cc", "tp"), k = c(12, 15))
 ##   Resid. Df Resid. Dev      Df Deviance      F    Pr(&gt;F)    
-## 1     14684      38759                                      
-## 2     15022      41769 -338.25  -3009.8 3.3979 &lt; 2.2e-16 ***
+## 1     14683      38766                                      
+## 2     15022      41769 -338.65  -3002.2 3.3847 &lt; 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -1305,25 +1201,25 @@ summary(m)
 ## 
 ## Parametric coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept) 21.61913    0.02078    1040   &lt;2e-16 ***
+## (Intercept) 21.61952    0.02089    1035   &lt;2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Approximate significance of smooth terms:
-##                                 edf Ref.df         F p-value    
-## s(ToD)                        1.000   1.00    25.979 8.8e-07 ***
-## s(DoY)                        9.896  10.00 13430.960 &lt; 2e-16 ***
-## s(YEAR)                      28.026  28.75    75.994 &lt; 2e-16 ***
-## s(LONGITUDE,LATITUDE)        69.104  99.00     6.713 &lt; 2e-16 ***
-## ti(DoY,YEAR)                131.299 140.00    34.690 &lt; 2e-16 ***
-## ti(LONGITUDE,LATITUDE,ToD)   50.398 171.00     0.981 &lt; 2e-16 ***
-## ti(LONGITUDE,LATITUDE,DoY)   92.991 240.00     1.301 &lt; 2e-16 ***
-## ti(LONGITUDE,LATITUDE,YEAR)  91.791 287.00     1.305 &lt; 2e-16 ***
+##                                 edf Ref.df         F  p-value    
+## s(ToD)                        1.000   1.00    26.052 8.29e-07 ***
+## s(DoY)                        9.896  10.00 13426.474  &lt; 2e-16 ***
+## s(YEAR)                      28.025  28.75    75.889  &lt; 2e-16 ***
+## s(LONGITUDE,LATITUDE)        69.140  99.00     6.683  &lt; 2e-16 ***
+## ti(DoY,YEAR)                131.288 140.00    34.679  &lt; 2e-16 ***
+## ti(LONGITUDE,LATITUDE,ToD)   50.359 171.00     0.979  &lt; 2e-16 ***
+## ti(LONGITUDE,LATITUDE,DoY)   92.912 240.00     1.299  &lt; 2e-16 ***
+## ti(LONGITUDE,LATITUDE,YEAR)  91.792 329.00     1.130  &lt; 2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## R-sq.(adj) =   0.94   Deviance explained = 94.2%
-## fREML =  29799  Scale est. = 2.6187    n = 15276
+## fREML =  29800  Scale est. = 2.6192    n = 15276
 ```
 ]
 
@@ -1336,7 +1232,7 @@ summary(m)
 plot(m, pages = 1, scheme = 2, shade = TRUE)
 ```
 
-&lt;img src="index_files/figure-html/galveston-full-model-plot-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/galveston-full-model-plot-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1348,7 +1244,7 @@ draw(m, scales = "free", rug = FALSE, n = 50) +  plot_layout(widths = 1) &amp;
   theme(strip.text.x = element_text(size = 8))
 ```
 
-&lt;img src="index_files/figure-html/galveston-full-model-draw-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/galveston-full-model-draw-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1389,7 +1285,7 @@ plt
 
 # Galveston Bay &amp;mdash; plot
 
-&lt;img src="index_files/figure-html/galveston-full-predict-plot-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/galveston-full-predict-plot-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1421,7 +1317,7 @@ plt2
 
 # Galveston Bay &amp;mdash; plot trends
 
-&lt;img src="index_files/figure-html/galveston-trends-by-month-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/galveston-trends-by-month-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1471,10 +1367,10 @@ Also see my blog: [fromthebottomoftheheap.net](http://fromthebottomoftheheap.net
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
 <script src="macros.js"></script>
 <script>var slideshow = remark.create({
-"highlightStyle": "github",
-"highlightLines": true,
-"countIncrementalSlides": false,
-"ratio": "16:9"
+  "highlightStyle": "github",
+  "highlightLines": true,
+  "countIncrementalSlides": false,
+  "ratio": "16:9"
 });
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   window.dispatchEvent(new Event('resize'));

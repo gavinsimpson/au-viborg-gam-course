@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="767" height="432" viewBox="0 0 767 432">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="767pt" height="432pt" viewBox="0 0 767 432">
 <defs>
 <g>
 <g id="glyph-0-0">
@@ -103,6 +103,7 @@
 <path clip-rule="nonzero" d="M 727 9.960938 L 730 9.960938 L 730 373.089844 L 727 373.089844 Z M 727 9.960938 "/>
 </clipPath>
 </defs>
+<rect x="-76.7" y="-43.2" width="920.4" height="518.4" fill="rgb(100%, 100%, 100%)" fill-opacity="1"/>
 <rect x="-76.7" y="-43.2" width="920.4" height="518.4" fill="rgb(100%, 100%, 100%)" fill-opacity="1"/>
 <g clip-path="url(#clip-0)">
 <path fill="none" stroke-width="0.96998" stroke-linecap="butt" stroke-linejoin="round" stroke="rgb(92.156863%, 92.156863%, 92.156863%)" stroke-opacity="1" stroke-miterlimit="10" d="M 73.910156 345.09375 L 757.039062 345.09375 "/>

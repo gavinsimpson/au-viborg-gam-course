@@ -3,7 +3,7 @@ title: "Generalized Additive Models"
 subtitle: "a data-driven approach to estimating regression models"
 institute: "Department of Animal & Veterinary Sciences · Aarhus University"
 author: "Gavin Simpson"
-date: "0930&ndash;1600 CET Thursday 12th December, 2024"
+date: 0900&ndash;1500 CET Thursday 10th June, 2026"
 output:
   xaringan::moon_reader:
     css: ['default', 'https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css', 'slides.css']
@@ -161,14 +161,14 @@ f2 <- function(x) {
 }
 f3 <- function(x) {x*0}
 
-n<-200
+n <- 200
 sig2 <- 12
-x0 <- rep(1:4,50)
+x0 <- rep(1:4, 50)
 x1 <- runif(n, 0, 1)
 x2 <- runif(n, 0, 1)
 x3 <- runif(n, 0, 1)
 e <- rnorm(n, 0, sqrt(sig2))
-y <- 2*x0 + f1(x1) + f2(x2) + f3(x3) + e
+y <- 2 * x0 + f1(x1) + f2(x2) + f3(x3) + e
 x0 <- factor(x0)
 
 ## fit and plot...

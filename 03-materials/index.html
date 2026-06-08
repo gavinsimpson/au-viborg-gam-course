@@ -28,7 +28,7 @@ class: inverse, middle, left, my-title-slide, title-slide
 ### Department of Animal &amp; Veterinary Sciences · Aarhus University
 ]
 .date[
-### 0930–1600 CET Thursday 12th December, 2024
+### 0900–1500 CET Thursday 10th June, 2026”
 ]
 
 ---
@@ -75,7 +75,7 @@ When *averaged* over the range of covariate, 1 - &amp;alpha; coverage is approxi
 # Credible intervals for smooths
 
 .center[
-&lt;img src="resources/miller-bayesian-gam-interpretation-fig.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="resources/miller-bayesian-gam-interpretation-fig.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 ]
 
 .smaller[
@@ -128,18 +128,18 @@ Use
 
 # Example
 
-&lt;img src="index_files/figure-html/setup-confint-example-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/setup-confint-example-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
 # closer&amp;hellip;
 
-&lt;img src="index_files/figure-html/draw-coverage-bands-closup-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-coverage-bands-closup-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 ---
 
 # closer&amp;hellip;
 
-&lt;img src="index_files/figure-html/draw-coverage-bands-closup-x3-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-coverage-bands-closup-x3-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -530,7 +530,7 @@ Just like shrinkage in mixed effects model
 ]
 
 .col-5[
-&lt;img src="index_files/figure-html/re-basis-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/re-basis-1.png" alt="" style="display: block; margin: auto;" /&gt;
 ]
 ]
 
@@ -583,7 +583,7 @@ By way of an example, I'm going to use a data set from a study on the effects of
 
 # Rat hormone experiment
 
-&lt;img src="index_files/figure-html/plot-rat-data-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/plot-rat-data-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -671,7 +671,7 @@ There's nothing special HGAMs once we've created the basis functions
 
 Pedersen et al (2019) *PeerJ* described 6 models
 
-&lt;img src="resources/lawton-et-al-hgam-locust-paper-fig.svg" width="95%" style="display: block; margin: auto;" /&gt;
+&lt;img src="resources/lawton-et-al-hgam-locust-paper-fig.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 
 .small[Source: [Lawton *et al* (2022) *Ecography*](http://doi.org/10.1111/ecog.05763) modified from [Pedersen *et al* (2019) *PeerJ*](http://doi.org/10.7717/peerj.6876)]
 
@@ -748,7 +748,7 @@ m_rich &lt;- gam(richness ~ s(year),
 ```
 ]
 .col-6[
-&lt;img src="index_files/figure-html/richness-violin-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/richness-violin-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 ]
 ]
 
@@ -761,7 +761,7 @@ m_rich &lt;- gam(richness ~ s(year),
 draw(m_rich)
 ```
 
-&lt;img src="index_files/figure-html/draw-richness-gam-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-richness-gam-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -769,7 +769,7 @@ draw(m_rich)
 
 🦐 biomass at each trawl
 
-&lt;img src="index_files/figure-html/biom-space-time-plot-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/biom-space-time-plot-1.png" alt="" style="display: block; margin: auto;" /&gt;
 ---
 
 # Spatio-temporal model
@@ -868,7 +868,7 @@ ggplot(pred, aes(x = year)) + scale_x_continuous(breaks = 2005:2014) +
     geom_line(aes(y = richness)) + labs(y = "Species richness", x = NULL)
 ```
 
-&lt;img src="index_files/figure-html/plot-predictions-richness-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/plot-predictions-richness-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -943,7 +943,7 @@ ggplot(sp_pred, aes(x = x, y = y, fill = biomass)) + geom_raster() +
     scale_fill_viridis_c(option = "plasma") + facet_wrap(~ year, ncol = 5) + coord_equal()
 ```
 
-&lt;img src="index_files/figure-html/spt-example-plot-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/spt-example-plot-1.png" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1053,7 +1053,7 @@ ggplot(ti_pred, aes(x = year)) + geom_ribbon(aes(ymin = lwr, ymax = upr), alpha 
     geom_line(aes(y = biomass)) + labs(y = "Biomass", x = NULL)
 ```
 
-&lt;img src="index_files/figure-html/plot-ti-marginal-trend-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/plot-ti-marginal-trend-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1069,7 +1069,7 @@ ggplot(ti_pred2, aes(x = year)) + geom_ribbon(aes(ymin = .lower_ci, ymax = .uppe
   geom_line(aes(y = .fitted)) + labs(y = "Biomass", x = NULL)
 ```
 
-&lt;img src="index_files/figure-html/predict-via-fitted-values-1.svg" width="70%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/predict-via-fitted-values-1.svg" alt="" width="70%" style="display: block; margin: auto;" /&gt;
 
 ---
 class: inverse middle center subsection
@@ -1081,7 +1081,7 @@ class: inverse middle center subsection
 # Remember this?
 
 .center[
-&lt;img src="resources/miller-bayesian-gam-interpretation-fig.svg" width="80%" style="display: block; margin: auto;" /&gt;
+&lt;img src="resources/miller-bayesian-gam-interpretation-fig.svg" alt="" width="80%" style="display: block; margin: auto;" /&gt;
 ]
 
 .smaller[
@@ -1273,7 +1273,7 @@ A bit of rearranging is needed to plot with `ggplot()`
 ]
 
 .col-6[
-&lt;img src="index_files/figure-html/richness-posterior-draws-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/richness-posterior-draws-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 ]
 
 ]
@@ -1292,7 +1292,7 @@ sm_post &lt;- smooth_samples(m_rich, 's(year)', n = 20, seed = 42)
 draw(sm_post)
 ```
 
-&lt;img src="index_files/figure-html/plot-posterior-smooths-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/plot-posterior-smooths-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1346,7 +1346,7 @@ ggplot(tibble(richness = mu_p[587, ]), aes(x = richness)) +
     geom_histogram() + labs(title = "Posterior richness for obs #587")
 ```
 
-&lt;img src="index_files/figure-html/posterior-sim-model-hist-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/posterior-sim-model-hist-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1361,7 +1361,7 @@ ggplot(filter(rich_post, .row == 587), aes(x = .fitted)) +
     geom_histogram() + labs(title = "Posterior richness for obs #587", x = "Richness")
 ```
 
-&lt;img src="index_files/figure-html/richness-fitted-samples-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/richness-fitted-samples-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1455,7 +1455,7 @@ quantile(total_biomass, probs = c(0.025, 0.975))
 
 # Summarize the expected biomass
 
-&lt;img src="index_files/figure-html/total-biomass-histogram-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/total-biomass-histogram-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1498,7 +1498,7 @@ ggplot(bio_post, aes(x = total)) +
     labs(x = "Total biomass")
 ```
 
-&lt;img src="index_files/figure-html/biomass-fitted-samples-plot-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/biomass-fitted-samples-plot-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -1614,10 +1614,10 @@ Also see my blog: [fromthebottomoftheheap.net](http://fromthebottomoftheheap.net
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
 <script src="macros.js"></script>
 <script>var slideshow = remark.create({
-"highlightStyle": "github",
-"highlightLines": true,
-"countIncrementalSlides": false,
-"ratio": "16:9"
+  "highlightStyle": "github",
+  "highlightLines": true,
+  "countIncrementalSlides": false,
+  "ratio": "16:9"
 });
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   window.dispatchEvent(new Event('resize'));

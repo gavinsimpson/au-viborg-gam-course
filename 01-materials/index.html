@@ -26,7 +26,7 @@ class: inverse, middle, left, my-title-slide, title-slide
 ### Department of Animal &amp; Veterinary Sciences · Aarhus University
 ]
 .date[
-### 0930–1600 CET Tuesday 10th December, 2024
+### 0900–1500 CET Tuesday 9th June, 2026
 ]
 
 ---
@@ -40,11 +40,297 @@ class: inverse middle center big-subsection
 
 # Today's topics
 
+* GLMs
+
 * How do GAMs work?
 
 * What are splines?
 
 * How do GAMs learn from data without overfitting?
+
+---
+class: inverse middle center huge-subsection
+
+# GLMs
+
+---
+
+# GAMs are (just) fancy GLMs
+
+To make effective use of GAMs we need to grasp the basics of GLMs
+
+A **G**eneralized **L**inear **M**odel is a statistical model that allows the response to be conditionally distributed according to a wider set of distributions than the Gaussian of linear regression
+
+---
+
+# Statistical models
+
+Fit statistical models to data &amp;rarr; estimate parameters &amp;rarr; assess uncertainty
+
+Generally used to test **scientific hypotheses** operationalised as a statistical model
+
+&lt;img src="index_files/figure-html/statistical-model-example-1.svg" alt="" width="60%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Linear models
+
+The linear model behind the data we saw a couple of slides ago was
+
+$$ \hat{y}_i = 2 + (0.85 \times x_i) $$
+
+This is the equation of a straight line, more generally
+
+$$ \hat{y}_i = b + (a \times x_i) $$
+
+$$ \hat{y}_i = \beta_0 + \beta_1 x_i $$
+
+&gt; Q: What values can this model predict for `\(y_i\)`?
+
+---
+
+# Linear models
+
+The problem with using linear models is that
+
+1. They can predict values for `\(y_i\)` that are biologically nonsensical,
+
+2. They fail to capture the mean-variance relationships commonly encountered in biological data
+
+We could transform `\(y_i\)` but then we would be modelling something other than `\(\hat{y_i}\)`, which statisticians call the expected value of `\(Y\)`
+
+$$ \mathbb{E}(y_i) $$
+
+Usually we are interested in `\(\mathbb{E}(y_i)\)`, not `\(\mathbb{E}(\log(y_i))\)`
+
+---
+
+# Generalized linear models
+
+Generalised linear models (GLMs) are an extension of linear regression &amp; include Poisson, logistic and other regression models
+
+GLMs extend the types of data and error distributions that can be modelled beyond the Gaussian data of linear regression
+
+With GLMs we can model count data, binary/presence absence data, and concentration data where the response variable is not continuous
+
+Such data have different mean-variance relationships and we would not expect errors to be Gaussian
+
+---
+
+# Generalized linear models
+
+Typical uses of GLMs are
+
+- Poisson GLM for count data
+- Logistic GLM for presence absence data
+- Gamma GLM for non-negative or positive continuous data
+
+GLMs can handle many problems that appear non-linear
+
+Not necessary to transform data as this is handled as part of the GLM process
+
+---
+
+# Binomial distribution
+
+* For a fixed number of trials (*n*),
+* fixed probability of “success” (*p*), &amp;
+* two outcomes per trial (heads or tails)
+
+Flip a coin 10 times with *p* = 0.7, the probability of 7 heads is `\(\sim \mathcal{B}(n = 10, p = 0.7)\)`, ~ 0.27
+
+
+``` r
+dbinom(x = 7, size = 10, prob = 0.7)
+```
+
+```
+## [1] 0.2668279
+```
+
+---
+
+# Binomial distribution
+
+&lt;img src="index_files/figure-html/binomial-pdf-1.svg" alt="" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Poisson distribution
+
+The Poisson gives the distribution of the number of “things” (individuals, events, counts) in a given sampling interval/effort if each event is **independent**
+
+Has a single parameter `\(\lambda\)` the average density or arrival rate
+
+---
+
+# Poisson distribution
+
+&lt;img src="index_files/figure-html/poisson-pdf-1.svg" alt="" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Exponential family
+
+The binomial and Poisson distributions are part of a larger family **exponential family**
+
+Also include the Gaussian distribution
+
+GLMs *sensu stricto* were created for members of the **exponential [dispersion] family**
+
+General ideas we will encounter with GAMs extend to distributions beyond this family
+
+---
+
+# The structure of a GLM
+
+.small[
+1. A **Random component**, specifying the conditional distribution of of the response `\(y_i\)` given the values of the explanatory data
+2. A **Linear Predictor** `\(\eta\)` &amp;mdash; the linear function of regressors
+    `$$\eta_i = \alpha + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_k x_{ik}$$`
+	The `\(x_{ij}\)` are prescribed functions of the explanatory variables and can be transformed variables, dummy variables, polynomial terms, interactions etc.
+3. A smooth and invertible **Link Function** `\(g(\cdot)\)`, which transforms the expectation of the response `\(\mu_i \equiv \mathbb{E}(y_i)\)` to the linear predictor
+    `$$g(\mu_i) = \eta_i = \alpha + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_k x_{ik}$$`
+    As `\(g(\cdot)\)` is invertible, we can write
+    `$$\mu_i = g^{-1}(\eta_i) = g^{-1}(\alpha + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_k x_{ik})$$`
+]
+
+---
+
+# Conditional distribution of `\(y_i\)`
+
+Originally GLMs were specified for random components belonging to the *exponential family* of probability distributions
+
+- Continuous probability distributions
+    - Gaussian (or normal distribution; used in linear regression)
+	- Gamma (data with constant coefficient of variation)
+	- Exponential (time to death, survival analysis)
+	- Chi-square
+	- Inverse-Gaussian
+- Discrete probability distributions
+    - Poisson (count data)
+	- Binomial (0/1 data, counts from a total)
+	- Multinomial
+
+Choice depends on range of `\(y_i\)` and on the relationship between the variance and the expectation of `\(y_i\)` &amp;mdash; *mean-variance relationship*
+
+---
+
+# Conditional distribution of `\(y_i\)`
+
+Characteristics of common GLM probability distributions
+
+
+|                  | Canonical Link | Range of `\(Y_i\)`               |              Variance function |
+|------------------|----------------|------------------------------|--------------------------------|
+| Gaussian         | Identity       | `\((-\infty, +\infty)\)`         | `\(\phi\)`                         |
+| Poisson          | Log            | `\(0,1,2,\ldots,\infty\)`        | `\(\mu_i\)`                        |
+| Binomial         | Logit          | `\(\frac{0,1,\ldots,n_i}{n_i}\)` | `\(\frac{\mu_i(1 - \mu_i)}{n_i}\)` |
+| Gamma            | Inverse        | `\((0, \infty)\)`                | `\(\phi \mu_i^2\)`                 |
+| Inverse-Gaussian | Inverse-square | `\((0, \infty)\)`                | `\(\phi \mu_i^3\)`                 |
+
+
+`\(\phi\)` is the dispersion parameter; `\(\mu_i\)` is the expectation of `\(y_i\)`. In the binomial family, `\(n_i\)` is the number of trials
+
+---
+
+# Common probability distributions
+
+Gaussian distribution is rarely adequate in applied science; GLMs offer useful alternatives
+
+.small[
+- **Poisson** &amp;mdash; counts; integers, non-negative, variance increases with mean
+
+- **Binomial** &amp;mdash; observed proportions from a total; integers, non-negative, bounded at 0 and 1, variance largest at `\(\pi = 0.5\)`
+
+- **Binomial** &amp;mdash; presence absence data; discrete values, 0 and 1, models probability of success
+
+- **Gamma** &amp;mdash; concentrations; non-negative (strictly positive with log link) real values, variance increases with mean, many zero values and some high values
+]
+
+---
+
+# Old notation
+
+Wrote linear model as
+
+`$$y_i = \alpha + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots + \beta_j x_{ij} + \varepsilon_i$$`
+
+And assumed properties of residuals
+
+$$ \varepsilon_i \sim \text{Normal}(0, \sigma^2) $$
+
+This doesn't work out the same for GLMs &amp;mdash; we don't (usually) have a residual term `\(\varepsilon\)` in the linear predictor
+
+Sampling variation comes from the response distribution
+
+---
+
+# New notation
+
+Rewrite linear model as
+
+`\begin{align*}
+y_i &amp; \sim \text{Normal}(\mu_i, \sigma^2) \\
+\eta_i &amp; = \alpha + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots + \beta_j x_{ij}
+\end{align*}`
+
+This now matches the general form for the GLM
+
+`\begin{align*}
+y_i &amp; \sim \text{EF}(\mu_i, \boldsymbol{\theta}) \\
+g(\mu_i) &amp; = \alpha + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots + \beta_j x_{ij}
+\end{align*}`
+
+---
+
+# New notation
+
+&lt;img src="resources/fig-gaussian-lm-descriptive-figure-1.png" alt="" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# New notation
+
+Binomial GLM
+
+`\begin{align*}
+y_i &amp; \sim \text{Binomial}(n, p_i) \\
+\text{logit}(p_i) &amp; = \alpha + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots + \beta_j x_{ij}
+\end{align*}`
+
+Poisson GLM
+
+`\begin{align*}
+y_i &amp; \sim \text{Poisson}(\lambda_i) \\
+\log(\lambda_i) &amp; = \alpha + \beta_1 x_{1i} + \beta_2 x_{2i} + \cdots + \beta_j x_{ij}
+\end{align*}`
+
+---
+
+# New notation
+
+&lt;img src="resources/fig-poisson-lm-descriptive-figure-1.png" alt="" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# New notation
+
+&lt;img src="resources/fig-other-dist-descr-1.png" alt="" width="80%" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Why?
+
+Is this really necessary? Is it just some mathematical sleight of hand?
+
+Yes, it is necessary (except for a couple of special cases Gaussian, Binomial)
+
+No, it is not just sleight of hand
+
+&gt; Focus on the distribution of each observation of `\(y_i\)`
+
+What values can each observation take?
 
 ---
 class: inverse middle center huge-subsection
@@ -60,7 +346,7 @@ class: inverse middle center subsection
 
 # HadCRUT4 time series
 
-&lt;img src="index_files/figure-html/hadcrut-temp-example-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/hadcrut-temp-example-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ???
 
@@ -94,13 +380,13 @@ class: inverse center middle subsection
 
 # Is this linear?
 
-&lt;img src="index_files/figure-html/hadcrut-temp-example-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/hadcrut-temp-example-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
 # Polynomials perhaps&amp;hellip;
 
-&lt;img src="index_files/figure-html/hadcrut-temp-polynomial-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/hadcrut-temp-polynomial-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -124,8 +410,11 @@ class: inverse middle center subsection
 library("readr")
 library("dplyr")
 URL &lt;-  "https://bit.ly/hadcrutv4"
-gtemp &lt;- read_table(URL, col_types = 'nnnnnnnnnnnn', col_names = FALSE) |&gt;
-    select(num_range('X', 1:2)) %&gt;% setNames(nm = c('Year', 'Temperature'))
+gtemp &lt;- read_table(
+  URL, col_types = "nnnnnnnnnnnn", col_names = FALSE
+) |&gt;
+  select(num_range("X", 1:2)) |&gt;
+  setNames(nm = c("Year", "Temperature"))
 ```
 
 [File format](https://www.metoffice.gov.uk/hadobs/hadcrut4/data/current/series_format.html)
@@ -163,7 +452,7 @@ gtemp
 
 ``` r
 library("mgcv")
-m &lt;- gam(Temperature ~ s(Year), data = gtemp, method = 'REML')
+m &lt;- gam(Temperature ~ s(Year), data = gtemp, method = "REML")
 summary(m)
 ```
 
@@ -198,7 +487,7 @@ summary(m)
 
 # Fitted GAM
 
-&lt;img src="index_files/figure-html/hadcrtemp-plot-gam-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/hadcrtemp-plot-gam-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 class: inverse middle center big-subsection
@@ -243,7 +532,7 @@ A GAM is a sum of _smooth functions_ or _smooths_
 
 # How did `gam()` *know*?
 
-&lt;img src="index_files/figure-html/hadcrtemp-plot-gam-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/hadcrtemp-plot-gam-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 class: inverse
@@ -266,10 +555,12 @@ background-size: contain
 # Fitting a GAM in R
 
 ```r
-model &lt;- gam(y ~ s(x1) + s(x2) + te(x3, x4), # formuala describing model
-             data = my_data_frame,           # your data
-             method = 'REML',                # or 'ML'
-             family = gaussian)              # or something more exotic
+model &lt;- gam(
+  y ~ s(x1) + s(x2) + te(x3, x4), # formula describing model
+  data = my_data_frame,           # your data
+  method = "REML",                # or "ML"
+  family = gaussian               # or something more exotic
+)
 ```
 
 `s()` terms are smooths of one or more variables
@@ -325,7 +616,7 @@ Resultant spline is a the sum of these weighted basis functions, evaluated at th
 
 # Splines formed from basis functions
 
-&lt;img src="index_files/figure-html/basis-functions-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/basis-functions-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ???
 
@@ -353,7 +644,7 @@ Each of the splines I showed you earlier are all generated from the same basis f
 
 # How do GAMs learn from data?
 
-&lt;img src="index_files/figure-html/example-data-figure-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/example-data-figure-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ???
 
@@ -424,7 +715,7 @@ the spline coefficients `\(B_k\)` that maximize the **penalized** log-likelihood
 
 # HadCRUT4 time series
 
-&lt;img src="index_files/figure-html/hadcrut-temp-penalty-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/hadcrut-temp-penalty-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -438,14 +729,14 @@ Two ways to think about how to optimize `\(\lambda\)`:
 ]
 
 .pull-right[
-Many methods: AIC, Mallow's `\(C_p\)`, GCV, ML, REML
+Many methods: AIC, Mallow's `\(C_p\)`, GCV, ML, REML, NCV
 
 * **Practically**, use **REML**, because of numerical stability
 * Hence `gam(..., method='REML')`
 ]
 
 .center[
-![Animation of derivatives](./resources/remlgcv.png)
+![REML and GCV smoothness selection](./resources/remlgcv.png)
 ]
 
 ---
@@ -458,7 +749,7 @@ This is _maximum wigglyness_, can be thought of as number of small functions tha
 
 Once smoothing is applied, curves have fewer **effective degrees of freedom (EDF)**
 
-EDF &lt; `\(k\)`
+`\(\text{EDF} &lt; k\)`
 
 ---
 
@@ -488,6 +779,22 @@ In **mgcv**, default `\(k\)` values are arbitrary &amp;mdash; after choosing the
 4. Need to make sure your smooths are **wiggly enough**
 
 ---
+
+class: middle center inverse subsection
+
+# Your turn
+
+---
+
+# Exercise
+
+Complete the exercise at
+
+&lt;https://gavinsimpson.github.io/au-viborg-gam-course/day-1/milk-yield.html&gt;
+
+You can also download the [`milk-yield.qmd`](https://github.com/gavinsimpson/au-viborg-gam-course/raw/refs/heads/main/day-1/milk-yield.qmd) and open it in RStudio
+
+---
 class: middle center inverse subsection
 
 # Example
@@ -505,7 +812,7 @@ library("here"); library("readr"); library("dplyr")
 larks &lt;-  read_csv(here("data", "larks.csv"),
                    col_types = "ccdddd")
 
-larks &lt;- larks %&gt;%
+larks &lt;- larks |&gt;
   mutate(crestlark = factor(crestlark),
          linnet = factor(linnet),
          e = x / 1000,
@@ -528,7 +835,7 @@ head(larks)
 
 .col-5[
 
-&lt;img src="index_files/figure-html/birds-2-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/birds-2-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 ]
 ]
 
@@ -600,15 +907,15 @@ Alternatively we can aggregate data at the `QUADRICULA` level &amp; fit a binomi
 .smaller[
 
 ``` r
-larks2 &lt;- larks %&gt;%
+larks2 &lt;- larks |&gt;
   mutate(crestlark = as.numeric(as.character(crestlark)),  # to numeric
          linnet = as.numeric(as.character(linnet)),
          tet_n = rep(1, nrow(larks)),                      # counter for how many grid cells (tetrads) we sum
          N = rep(1, nrow(larks)),                          # number of observations, 1 per row currently
-         N = if_else(is.na(crestlark), NA_real_, N)) %&gt;%   # set N to NA if observation taken
-  group_by(QUADRICULA) %&gt;%                                 # group by the larger grid square
+         N = if_else(is.na(crestlark), NA_real_, N)) |&gt;    # set N to NA if observation taken
+  group_by(QUADRICULA) |&gt;                                  # group by the larger grid square
   summarise(across(c(N, crestlark, linnet, tet_n, e, n),
-                   ~ sum(., na.rm = TRUE))) %&gt;%            # sum all needed variables
+                   ~ sum(., na.rm = TRUE))) |&gt;             # sum all needed variables
   mutate(e = e / tet_n, n = n / tet_n)                     # rescale to get avg E,N coords for QUADRICULA
 
 ## fit binomial GAM
@@ -652,7 +959,7 @@ ggplot(tibble(Fitted = fitted(crest2),
        aes(Fitted, Resid)) + geom_point()
 ```
 
-&lt;img src="index_files/figure-html/gam-check-aggregated-lark-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/gam-check-aggregated-lark-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 ]
 ---
 class: inverse middle center subsection
@@ -696,7 +1003,7 @@ south
 ggplot(south, aes(x = c.month, y = co2)) + geom_line()
 ```
 
-&lt;img src="index_files/figure-html/co2-example-2-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/co2-example-2-1.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -776,7 +1083,7 @@ ggplot(fv, aes(x = c.month, y = .fitted)) +
     geom_line(alpha = 0.4)
 ```
 
-&lt;img src="index_files/figure-html/co2-example-5-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/co2-example-5-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -873,7 +1180,7 @@ ggplot(fv2, aes(x = c.month, y = .fitted)) +
     geom_line(alpha = 0.4)
 ```
 
-&lt;img src="index_files/figure-html/co2-example-9-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/co2-example-9-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1025,7 +1332,7 @@ plt
 ]
 
 .col-6[
-&lt;img src="index_files/figure-html/plot-mcycle-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/plot-mcycle-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 ]
 ]
 
@@ -1066,7 +1373,7 @@ bfun
 draw(bfun)
 ```
 .center[
-&lt;img src="index_files/figure-html/draw-tprs-basis-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-tprs-basis-1.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 ]
 
 ---
@@ -1078,7 +1385,7 @@ draw(bfun)
 draw(bfun) + facet_wrap(~ .bf)
 ```
 .center[
-&lt;img src="index_files/figure-html/draw-tprs-basis-facetted-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-tprs-basis-facetted-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 ]
 
 ---
@@ -1103,13 +1410,13 @@ bfun &lt;- basis(s(times, bs = "cr"), data = new_df)
 draw(bfun) + facet_wrap(~ .bf)
 ```
 
-&lt;img src="index_files/figure-html/unnamed-chunk-3-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-4-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 
 ---
 
 # Cubic regression splines
 
-&lt;img src="index_files/figure-html/unnamed-chunk-4-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-5-1.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1159,7 +1466,7 @@ bfun &lt;- basis(s(month, bs = "cc"), data = month_df)
 draw(bfun) + facet_wrap(~ .bf)
 ```
 
-&lt;img src="index_files/figure-html/draw-crs-basis-facetted-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-crs-basis-facetted-1.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1180,13 +1487,13 @@ draw(bfun) + facet_wrap(~ .bf)
 
 # Cyclic cubic regression splines
 
-&lt;img src="index_files/figure-html/plot-cc-basis-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/plot-cc-basis-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
 # The whole process 1
 
-&lt;img src="index_files/figure-html/whole-basis-proces-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/whole-basis-proces-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1204,13 +1511,13 @@ m &lt;- gam(y ~ s(x0) + s(x1) + s(x2, bs = "bs") + s(x3),
 draw(m) + plot_layout(nrow = 1, ncol = 4)
 ```
 
-&lt;img src="index_files/figure-html/whole-basis-proces-2-model-draw-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/whole-basis-proces-2-model-draw-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 
 # The whole process 3
 
-&lt;img src="index_files/figure-html/whole-basis-proces-2-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/whole-basis-proces-2-1.svg" alt="" style="display: block; margin: auto;" /&gt;
 
 ---
 class: inverse middle center big-subsection
@@ -1242,7 +1549,7 @@ bfun &lt;- basis(s(times), data = new_df, constraints = TRUE)
 draw(bfun) + facet_wrap(~ .bf)
 ```
 
-&lt;img src="index_files/figure-html/unnamed-chunk-6-1.svg" width="85%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-7-1.svg" alt="" width="85%" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -1277,7 +1584,7 @@ S
 # TPRS basis &amp; penalty
 
 .center[
-&lt;img src="index_files/figure-html/unnamed-chunk-8-1.png" width="100%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-9-1.png" alt="" width="100%" style="display: block; margin: auto;" /&gt;
 ]
 ---
 
@@ -1295,8 +1602,113 @@ S &lt;- penalty(m, smooth = "s(times)")
 # CRS basis &amp; penalty
 
 .center[
-&lt;img src="index_files/figure-html/unnamed-chunk-10-1.png" width="100%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/unnamed-chunk-11-1.png" alt="" width="100%" style="display: block; margin: auto;" /&gt;
 ]
+
+---
+
+# Basis functions for `s(x, z)`
+
+Code for this is in `01-materials/test.R`
+
+
+
+.center[
+&lt;img src="index_files/figure-html/tprs-2d-basis-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
+]
+
+---
+
+# Basis functions for `s(x, z)`
+
+Panels 1&amp;ndash;15 are the basis functions
+
+.center[
+&lt;img src="resources/wood-2ed-fig-5-12-2-d-tprs-basis-funs.png" alt="" width="45%" style="display: block; margin: auto;" /&gt;
+]
+
+.small[
+Source: Wood SN (2017)
+]
+
+---
+
+# Beyond linearity
+
+How do we test if we need something more than a linear effect?
+
+--
+
+Include a linear parametric term but remove it from the null space of the spline
+
+`m = c(2, 0)` implies 2&lt;sup&gt;nd&lt;/sup&gt; derivative penalty but zero null space
+
+Null space is the set of functions in the basis that the penalty doesn't affect
+
+---
+
+# Beyond linearity
+
+.row[
+
+.col-6[
+
+
+``` r
+n &lt;- 100
+set.seed(2)
+df &lt;- tibble(x = runif(n),
+             y = x + x^2 * 0.2 + rnorm(n) * 0.1)
+
+model &lt;- gam(y ~ x + s(x, m = c(2, 0)),
+             data = df, method = "REML")
+```
+]
+.col-6[
+.small[
+
+``` r
+summary(model)
+```
+
+```
+## 
+## Family: gaussian 
+## Link function: identity 
+## 
+## Formula:
+## y ~ x + s(x, m = c(2, 0))
+## 
+## Parametric coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.02133    0.05315  -0.401    0.689    
+## x            1.18249    0.10564  11.193   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Approximate significance of smooth terms:
+##         edf Ref.df     F p-value  
+## s(x) 0.9334      8 0.304   0.076 .
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## R-sq.(adj) =   0.91   Deviance explained = 91.1%
+## -REML = -70.567  Scale est. = 0.012767  n = 100
+```
+]
+]
+]
+
+---
+
+# Beyond linearity
+
+
+``` r
+draw(model, parametric = TRUE)
+```
+
+&lt;img src="index_files/figure-html/beyond-linearity-plot-1.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 
 ---
 class: inverse middle center big-subsection
@@ -1337,7 +1749,7 @@ m &lt;- gam(accel ~ s(times), data = mcycle, method = "REML")
 draw(m)
 ```
 
-&lt;img src="index_files/figure-html/draw-mcycle-1.svg" width="90%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-mcycle-1.svg" alt="" width="90%" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -1378,7 +1790,7 @@ draw(m_sim)
 # Plotting smooths
 
 .center[
-&lt;img src="index_files/figure-html/draw-four-fun-sim-plot-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-four-fun-sim-plot-1.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 ]
 
 ---
@@ -1399,17 +1811,17 @@ draw(m_sim,
 # Plotting smooths
 
 .center[
-&lt;img src="index_files/figure-html/draw-mcycle-options-plot-1.svg" width="95%" style="display: block; margin: auto;" /&gt;
+&lt;img src="index_files/figure-html/draw-mcycle-options-plot-1.svg" alt="" width="95%" style="display: block; margin: auto;" /&gt;
 ]
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
 <script src="macros.js"></script>
 <script>var slideshow = remark.create({
-"highlightStyle": "github",
-"highlightLines": true,
-"countIncrementalSlides": false,
-"ratio": "16:9"
+  "highlightStyle": "github",
+  "highlightLines": true,
+  "countIncrementalSlides": false,
+  "ratio": "16:9"
 });
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   window.dispatchEvent(new Event('resize'));

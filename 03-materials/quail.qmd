@@ -1,0 +1,69 @@
+---
+title: "Growth of Japanese quail"
+format:
+  html:
+    toc: true
+    html-math-method: katex
+    embed-resources: true
+    monobackgroundcolor: white
+knitr:
+  opts_chunk: 
+    echo: true
+    fig.align: center
+highlight-style: github-dark
+---
+
+
+In this example you will analyse a data set of weights of Japanese quail using a hierarchical GAM.
+
+Start by loading the packages that you'll need
+
+```{r}
+#| label: packages
+#| message: false
+pkgs <- c("mgcv", "gratia", "readxl", "scales", "ggplot2", "forcats",
+          "dplyr")
+vapply(
+  pkgs, library, logical(1),
+  character.only = TRUE, logical.return = TRUE
+)
+```
+
+and then load the data. The data were made available as an Excel workbook containing several worksheets. We can use the *readxl* package and its `excel_sheets()` function to look at the contents of the workbook
+```{r}
+fn <- "quail.xlsx"
+excel_sheets(fn)
+```
+The data we want for this example are in the `"growth analysis"` sheet
+
+```{r}
+q_growth <- read_xlsx(fn, sheet = "growth analysis", na = "NA") |>
+  mutate(                         # recode some variables as factors
+    motherID = factor(motherID),
+    eggID = factor(eggID),
+    group = factor(group),
+    sex = factor(sex)
+  ) |>
+  # make the label prettier for graphs
+  mutate(
+    sex = fct_recode(
+      sex,
+      "Female" = "F",
+      "Male" = "M"
+    ),
+    group = fct_recode(
+      group,
+      "T[3]" = "T3",
+      "T[4]" = "T4",
+      "T[3]~T[4]" = "T3T4"
+    )
+  )
+```
+
+::: {.callout-note}
+
+## Task
+
+Fit a factor `by` model to the data in order to model the time-structured treatment mean effects only. We'll ignore the repeated measures aspect of the data for now.
+
+:::
