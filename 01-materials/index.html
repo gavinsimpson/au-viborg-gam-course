@@ -722,7 +722,7 @@ the spline coefficients `\(B_k\)` that maximize the **penalized** log-likelihood
 # Picking the right wiggliness
 
 .pull-left[
-Two ways to think about how to optimize `\(\lambda\)`:
+Ways to think about optimizing `\(\lambda\)`:
 
 * Predictive: Minimize out-of-sample error
 * Bayesian:  Put priors on our basis coefficients
@@ -731,8 +731,9 @@ Two ways to think about how to optimize `\(\lambda\)`:
 .pull-right[
 Many methods: AIC, Mallow's `\(C_p\)`, GCV, ML, REML, NCV
 
-* **Practically**, use **REML**, because of numerical stability
-* Hence `gam(..., method='REML')`
+* **Practically**, use **REML** or **ML** for numerical stability
+* .small[`gam(..., method = "REML")`] 
+* Source: Wood (2011)
 ]
 
 .center[
@@ -790,9 +791,9 @@ class: middle center inverse subsection
 
 Complete the exercise at
 
-&lt;https://gavinsimpson.github.io/au-viborg-gam-course/day-1/milk-yield.html&gt;
+&lt;https://gavinsimpson.github.io/au-viborg-gam-course/01-materials/milk-yield.html&gt;
 
-You can also download the [`milk-yield.qmd`](https://github.com/gavinsimpson/au-viborg-gam-course/raw/refs/heads/main/day-1/milk-yield.qmd) and open it in RStudio
+You can also render the `milk-yield.qmd` that is in the `01-materials` folder
 
 ---
 class: middle center inverse subsection
@@ -1190,8 +1191,12 @@ A GAM is just a fancy GLM
 
 Simon Wood &amp; colleagues (2016) have extended the *mgcv* methods to some non-exponential family distributions
 
+As of *mgcv* 📦 v 1.9.4:
+
+.small[
 .row[
 .col-5[
+* `gaussian()`
 * `binomial()`
 * `poisson()`
 * `Gamma()`
@@ -1199,25 +1204,29 @@ Simon Wood &amp; colleagues (2016) have extended the *mgcv* methods to some non-
 * `nb()`
 * `tw()`
 * `mvn()`
+* `multinom()`
 ]
 .col-4[
-* `multinom()`
 * `betar()`
 * `scat()`
 * `gaulss()`
 * `ziplss()`
 * `twlss()`
 * `cox.ph()`
-]
-.col-3[
 * `gevlss()`
 * `gamals()`
+]
+.col-3[
 * `ocat()`
 * `shash()`
 * `gumbls()`
 * `cnorm()`
+* `clog()`
+* `cpois()`
 * `ziP()`
 * `gfam()`
+* `bcg()`
+]
 ]
 ]
 

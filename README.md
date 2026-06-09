@@ -20,25 +20,39 @@ Gavin Simpson, Assistant Professor, Department of Animal and Veterinary Sciences
 
 You can register for the course here: <https://event.au.dk/events/generalized-additive-modelling-with-r/>
 
-### Slides
+## Materials
 
+To quickly access the materials for the course, it is probably easiest to use the **usethis** package.  Follow the steps below:
+
+1. **usethis** will download the files to a folder, so create a folder in your filesystem where you want the files to be downloaded to. Ideally this will be a folder on the physical drive in your computer, not a shared drive like a OneDrive folder.
+
+2. Open RStudio, and in the Files pane, navigate to the folder you just created. Then, click the Blue gear / More icon in the menu of the files pane, and select `Set As Working Directory`. This will instruct R to run in the folder you created.
+
+3. Next, make sure that **usethis** is installed the code below will install the package if it cannot load it
+
+```r
+if (isFALSE(requireNamespace("usethis"))) install.packages("usethis")
+```
+
+4. Now we use the `use_course()` function from **usethis** to download the files
+
+```r
+usethis::use_course("gavinsimpson/au-viborg-gam-course", destdir = "./")
+```
+
+   The `destdir` bit instructs `use_course()` to download the files to the current working directory.
+
+5. Once you have download the files, you will be asked if you want to delete the download zip file. You can answer in the affirmative.
+
+6. Upon answering, `use_course()` will start a new RStudio instance, running in the folder of files it just downloaded.
+
+## Slides
 
 * [Tuesday](https://gavinsimpson.github.io/au-viborg-gam-course/01-materials/index.html)
 
 * [Wednesday](https://gavinsimpson.github.io/au-viborg-gam-course/02-materials/index.html)
 
 * [Thursday](https://gavinsimpson.github.io/au-viborg-gam-course/03-materials/index.html)
-
-<!-- ### Computing
-
-
-* [Tuesday](https://gavinsimpson.github.io/au-multivariate-stats/computing/02-unconstrained-ordination/unconstrained-ordination.html)
-
-* [Wednesday](https://gavinsimpson.github.io/au-multivariate-stats/computing/03-constrained-ordination/constrained-ordination.html)
-
-* [Thursday](https://gavinsimpson.github.io/au-multivariate-stats/computing/04-permutation-tests/permutation-tests.html)
-
--->
 
 ## Objectives of the course
 
