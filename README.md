@@ -54,6 +54,10 @@ usethis::use_course("gavinsimpson/au-viborg-gam-course", destdir = "./")
 
 * [Thursday](https://gavinsimpson.github.io/au-viborg-gam-course/03-materials/index.html)
 
+## Extra examples
+
+* [Chick weights](https://gavinsimpson.github.io/au-viborg-gam-course/02-materials/chick-weights.html))
+
 ## Objectives of the course
 
 The course will provide an applied introduction to generalized additive modelling in R for biologists. Most of the statistical methods you are likely to have encountered will have specified fixed functional forms for the relationships between covariates and the response, either implicitly or explicitly. These might be linear effects or involve polynomials, such as x + x2 + x3. Generalized additive models (GAMs) are different; they build upon the generalized linear model by allowing the shapes of the relationships between response and covariates to be learned from the data using splines. Modern GAMs are a general data analysis framework, encompassing many models as special cases, including GLMs and GLMMs, and the variety of splines available to users allows GAMs to be used in surprisingly large situations. In this course we’ll show you how to leverage the power and flexibility of splines to go beyond parametric modelling techniques like GLMs.
